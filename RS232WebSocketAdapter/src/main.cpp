@@ -24,6 +24,9 @@ const int ledPin = 2;
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
+// Create Processorclass for the serial transmission
+SerialTransmissionHandler sHandler;
+
 void notifyClients() {
   //Serial.printf("notifyClients invoked ! Message: %s\n", String(ledState).c_str());
   ws.textAll(String(ledState));
@@ -146,7 +149,7 @@ void setup(){
     request->send(LittleFS, "/webSocket_nc_Transmission.html", String(), false, processor);
   });
 
-    // Route for javascript file
+  // Route for javascript file
   server.on("/exec_script.js", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(LittleFS, "/exec_script.js", "text/javascript");
   });
@@ -165,6 +168,11 @@ void setup(){
 
 void loop() {
   delay(1);
+
   ws.cleanupClients();
+
+  sHandler.processSerialTransmission();
+
+  // temp:
   digitalWrite(ledPin, ledState);
 }
