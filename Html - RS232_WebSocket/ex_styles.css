@@ -1,0 +1,81 @@
+body {
+    background: #333333;
+    color: #FFFFFF;
+}
+
+section {
+    position: relative;
+    width: 80%;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+.centerHClass {
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#headerSpan {
+    text-align: center;
+}
+
+#nc_content_text_area {
+    margin-top: 20px;
+    resize: none;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    height: 600px;
+    max-width: 600px;
+    color: white;
+    background-color: #555555;
+    font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
+    letter-spacing: 0.1em;
+}
+
+#send_receive_button_container {
+    margin-top: 40px;
+    display: inline-block;
+}
+
+#sendButton {
+    margin-right: 30px;
+}
+
+.gButtonClass {
+    padding: 10px 30px;
+    min-width: 200px;
+    font-size: 22px;
+    text-align: center;
+    outline: none;
+    color: #fff;
+    background-color: #777777;
+    border: none;
+    border-radius: 5px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+.gButtonClass:active {
+    background-color: #888888;
+    box-shadow: 2 2px #CDCDCD;
+    transform: translateY(2px);
+  }
+
+#notificationAreaSpan {
+    text-align: center;
+}
+
+#notificationView {
+    margin-top: 50px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 20px;
+    color: goldenrod;
+}
