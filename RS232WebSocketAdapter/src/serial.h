@@ -8,10 +8,10 @@
 
 enum class PARITY {NONE = 0, ODD = 1, EVEN = 2};
 
-class SerialTransmissionProcessor
+class SerialTransmissionHandler
 {
     public:
-        SerialTransmissionProcessor(){}
+        SerialTransmissionHandler(){}
 
         void Send(String data);
         void Send(const char* data);
