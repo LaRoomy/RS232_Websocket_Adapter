@@ -17,6 +17,12 @@
 const char* ssid = "CT Workstation AP";
 const char* password = "30321065";
 
+// Global Serial configuration
+unsigned int scBaudRate = 115200;
+PARITY scParity = PARITY::NONE;
+DATABITS scDatabits = DATABITS::EIGHT;
+STOPPBITS scStoppbits = STOPPBITS::ONE;
+
 bool ledState = 0;
 const int ledPin = 2;
 
@@ -40,30 +46,90 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     data[len] = 0;
 
-      //Serial.println((char*)data);
-
-      String strData((char*)data);
-      //message += " - was your data !";
-
-      String message("Sending data. Size: ");
-      message += strData.length();
-      message += " Bytes";
-
-
+      // temp:
+      String message("Package received. Size: ");
+      message += len;
+      message += " | Header: ";
+      message += (char)data[0];
+      message += (char)data[1];
+      message += (char)data[2];
+      message += (char)data[3];
+      message += (char)data[4];
       ws.textAll(message);
 
-      if (strcmp((char*)data, "Send") == 0){
-        ledState = !ledState;
-      }
-      else {
+      if(data[0] == '_'){
+        // this a single package (not segmented)
+        // so we can open the serial transmission directly
 
-          Serial.begin(2400, SERIAL_7E1);
-          Serial.print((char*)data);
+        // set global configuration
+        sHandler.config(scBaudRate, scDatabits, scParity, scStoppbits);
+
+        // remove the header
+        sHandler.setTransmissionData(String((char*)data), true, 5);
+
+        /*String dataToSend((char*)data);
+        for(unsigned int i = 0; i < 5; i++){
+          dataToSend.remove(i, INT_MAX);
+        }*/
+
+        // send the data
+        sHandler.sendData();
+
+
+        //sHandler.sendData(dataToSend);
+
+        //sHandler.sendData((char*)data);
+      }
+      else if(data[0] == 's'){
+        // this is the start of a multi-package-transmission
+        sHandler.reset();
+        sHandler.setTransmissionData(String((char*)data), true, 5);
+      }
+      else if(data[0] == 'x'){
+        // this is a multi-package-transmission
+        // so we must append the data to preliminary transmissions
+        sHandler.addTransmissionData(String((char*)data), true, 5);
+      }
+      else if(data[0] == 'e'){
+        // this was the final package of a multi-package transmission
+        // -> rebuild and open the serial connection
+        sHandler.addTransmissionData(String((char*)data), true, 5);
+        sHandler.config(scBaudRate, scDatabits, scParity, scStoppbits);
+        sHandler.sendData();
+      }
+
+
+      //Serial.println((char*)data);
+
+      //String strData((char*)data);
+      //message += " - was your data !";
+
+      //String message("Sending data. Size: ");
+      //message += strData.length();
+      //message += " Bytes";
+
+
+      //ws.textAll(message);
+
+      //if (strcmp((char*)data, "Send") == 0){
+        //ledState = !ledState;
+      //}
+      //else {
+
+          //Serial.begin(2400, SERIAL_7E1);
+          //Serial.print((char*)data);
           //Serial.end();
 
           //Serial.
+
+          //sHandler.config(2400, DATABITS::SEVEN, PARITY::EVEN, STOPPBITS::ONE);
+
+          //sHandler.config(115200, DATABITS::EIGHT, PARITY::NONE, STOPPBITS::ONE);
+
+
+          //sHandler.sendData((char*)data);
           
-      }
+      //}
 
       //if(strcmp((char*)data, "Receive") == 0){
       //  ledState = 0;
