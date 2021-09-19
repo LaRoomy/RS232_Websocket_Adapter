@@ -70,6 +70,10 @@ section {
     transform: translateY(2px);
   }
 
+.gButtonClass:hover {
+    background-color: #666666;
+}
+
 #notificationAreaSpan {
     text-align: center;
 }

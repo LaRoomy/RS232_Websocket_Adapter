@@ -177,10 +177,16 @@ void SerialTransmissionHandler::processSerialTransmission(){
         else
         {
             // send complete
+            Serial.flush();
             Serial.end();
+
+            if(this->eventHandler != nullptr){
+                this->eventHandler->onSendComplete(transmissionIndex);
+            }
+
             this->currentTransmission = TRANSMISSION_TYPE::NONE;
             this->transmissionIndex = 0;
-            this->transmissionData.clear();
+            this->transmissionData.clear();            
         }
     }
     else if(this->currentTransmission == TRANSMISSION_TYPE::RECEIVE){

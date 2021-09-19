@@ -5,6 +5,8 @@ var gateway = `ws://${window.location.hostname}/ws`;
 
 var webSocket;
 
+var dataPackageArray = [];
+
 function initWebSocket(){
     console.log("init WebSocket Session");
     webSocket = new WebSocket(gateway);
@@ -24,8 +26,43 @@ function onWebSocketClose(event){
 
 function onWebSocketMessage(event){
 
+    if((event.data[0] == '_')&&(event.data[1] == 'C')){
+        // this is a config/command transmission
+
+        if((event.data[2] == 'n')&&(event.data[3] == 'x')&&(event.data[4] == 't')){
+            // next data package requested
+            // get requested index
+            var num = "";
+
+            for(var i = 5; i < event.data.length; i++){
+                if(event.data[i] == 'E'){
+                    break;
+                }
+                else {
+                    num += event.data[i];
+                }
+            }
+            // convert to int
+            var rqIndex = parseInt(num);
+            // send requested package
+            webSocket.send(dataPackageArray[rqIndex]);
+        }
+        else if((event.data[2] == 'c')&&(event.data[3] == 'o')&&(event.data[4] == 'n')){
+            // status message - connected
+            notifyUser("Status: Remote socket ready.");
+        }
+        else if((event.data[2] == 'u')&&(event.data[3] == 'm')&&(event.data[4] == 'g')){
+            // display message to user
+            var msg = ""
+            for(var i = 5; i < event.data.length; i++){
+                msg += event.data[i];
+            }
+            notifyUser(msg);
+        }
+    }
+
     // temp ?!
-    notifyUser(event.data);
+    //notifyUser(event.data);
 
 }
 
@@ -57,6 +94,10 @@ function onSendButtonClicked(){
     var data = tArea.value;
     var length = tArea.value.length;
 
+    notifyUser("Sending data. Size: " + length);
+
+    //notifyUser("Send was clicked");
+
 
     sendData('data', data, length);
 
@@ -78,11 +119,13 @@ function sendData(type, data, length){
     var header_type_conf = "_C000";
     var header_type_data = "_D000";
 
+    dataPackageArray = [];
+
     if(length > 500){
         // if the size of data is larger than 500bytes, it must be segmented
         var index = 0;
         var lengthCounter = 0;
-        var segmentNumber = 0;
+        var segmentIndex = 0;
         var dataToSend = "";
 
         while(index < length){
@@ -90,17 +133,17 @@ function sendData(type, data, length){
             // max package size reached -> send it
             if(lengthCounter >= 500){
                 // first build a simple header for the transmission
-                var segmentHeaderString = ""
+                var segmentHeaderString = "";
 
                 // what if this is the last package???
 
-                if(segmentNumber == 0){
+                if(segmentIndex == 0){
                     // this is the first package, apply the appropriate header entry
                     if(type == 'config'){
                         segmentHeaderString = "sC";
                     }
                     else if(type == 'data'){
-                        segmentHeaderString = "sD"
+                        segmentHeaderString = "sD";
                     }
                     else {
                         segmentHeaderString = "sU";
@@ -113,7 +156,7 @@ function sendData(type, data, length){
                             segmentHeaderString = "eC";
                         }
                         else if(type == 'data'){
-                            segmentHeaderString = "eD"
+                            segmentHeaderString = "eD";
                         }
                         else {
                             segmentHeaderString = "eU";
@@ -124,7 +167,7 @@ function sendData(type, data, length){
                             segmentHeaderString = "xC";
                         }
                         else if(type == 'data'){
-                            segmentHeaderString = "xD"
+                            segmentHeaderString = "xD";
                         }
                         else {
                             segmentHeaderString = "xU";
@@ -132,30 +175,31 @@ function sendData(type, data, length){
                     }
                 }
 
-                if(segmentNumber < 10){
-                    segmentHeaderString += ("00" + segmentNumber);
+                if(segmentIndex < 10){
+                    segmentHeaderString += ("00" + segmentIndex);
                 }
-                else if(segmentNumber < 100){
-                    segmentHeaderString += ("0" + segmentNumber);
+                else if(segmentIndex < 100){
+                    segmentHeaderString += ("0" + segmentIndex);
                 }
                 else {
-                    if(segmentNumber > 999){
+                    if(segmentIndex > 999){
                         // error
                         notifyUser("Error: Datasize to large (999). Aborting transmission.");
                     }
                     else {
-                        segmentHeaderString += segmentNumber;
+                        segmentHeaderString += segmentIndex;
                     }
                 }
 
                 // TEMP!!!
-                notifyUser("Formatted Header: " + segmentHeaderString);
+                //notifyUser("Formatted Header: " + segmentHeaderString);
                 
-                webSocket.send(segmentHeaderString + dataToSend);
+                //webSocket.send(segmentHeaderString + dataToSend);
+                dataPackageArray[segmentIndex] = (segmentHeaderString + dataToSend);
                                 
                 dataToSend = "";
                 lengthCounter = 0;
-                segmentNumber++;
+                segmentIndex++;
             }
             else {
                 dataToSend += data[index];
@@ -173,31 +217,36 @@ function sendData(type, data, length){
                 sheaderStr = "eC";
             }
             else if(type == 'data'){
-                sheaderStr = "eD"
+                sheaderStr = "eD";
             }
             else {
                 sheaderStr = "eU";
             }
 
-            if(segmentNumber < 10){
-                sheaderStr += ("00" + segmentNumber);
+            if(segmentIndex < 10){
+                sheaderStr += ("00" + segmentIndex);
             }
-            else if(segmentNumber < 100){
-                sheaderStr += ("0" + segmentNumber);
+            else if(segmentIndex < 100){
+                sheaderStr += ("0" + segmentIndex);
             }
             else {
-                if(segmentNumber > 999){
+                if(segmentIndex > 999){
                     // error
                     notifyUser("Error: Datasize to large (999). Aborting transmission.");
                 }
                 else {
-                    sheaderStr += segmentNumber;
+                    sheaderStr += segmentIndex;
                 }
             }
             // TEMP!!!
-            notifyUser("Formatted Header: " + sheaderStr);
+            //notifyUser("Formatted Header: " + sheaderStr);
 
-            webSocket.send(sheaderStr + dataToSend);
+            //webSocket.send(sheaderStr + dataToSend);
+            dataPackageArray[segmentIndex] = (sheaderStr + dataToSend);
+
+            // send first package
+            webSocket.send(dataPackageArray[0]);
+
         }
     }
     else{
