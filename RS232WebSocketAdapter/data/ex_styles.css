@@ -1,13 +1,29 @@
+html {
+    height: 100%;
+    margin: 0;
+}
+
 body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
     background: #333333;
     color: #FFFFFF;
 }
 
 section {
+    height: 100%;
+    margin: 0;
     position: relative;
     width: 80%;
     left: 50%;
     transform: translate(-50%, 0);
+}
+
+section hr {
+    width: 90%;
+    max-width: 610px;
+    margin-top: 20px;
 }
 
 .centerHClass {
@@ -18,6 +34,17 @@ section {
 
 #headerSpan {
     text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#headerSpan h2 {
+    margin-bottom: 0;
+}
+
+#headerUnderline {
+    width: 90%;
+    max-width: 610px;
+    margin-top: 0;
 }
 
 #nc_content_text_area {
@@ -27,7 +54,7 @@ section {
     margin-left: auto;
     margin-right: auto;
     width: 90%;
-    height: 50%;
+    height: 40%;
     min-height: 300px;
     max-width: 600px;
     color: white;
@@ -37,17 +64,31 @@ section {
 }
 
 #send_receive_button_container {
-    margin-top: 40px;
+    margin-top: 20px;
     display: inline-block;
 }
 
+#configPageButtonContainer {
+    margin-top: 20px;
+    display: inline-block;
+}
+
+/*
 #sendButton {
     margin-right: 30px;
+}*/
+
+#receiveButton {
+    margin-left: 20px;
+}
+
+#configButton {
+    margin-left: 20px;
 }
 
 .gButtonClass {
-    padding: 10px 30px;
-    min-width: 200px;
+    padding: 5px 20px;
+    min-width: 160px;
     font-size: 22px;
     text-align: center;
     outline: none;
@@ -74,34 +115,57 @@ section {
     background-color: #666666;
 }
 
-#notificationAreaSpan {
-    text-align: center;
-}
-
-#notificationView {
-    margin-top: 50px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 20px;
-    color: goldenrod;
-}
-
 #log_text_area {
-    margin-top: 20px;
+    margin-top: 0px;
     resize: none;
     display: block;
     margin-left: auto;
     margin-right: auto;
     width: 90%;
-    height: 20%;
+    height: 30%;
     min-height: 200px;
-    max-width: 500px;
+    max-width: 600px;
     color: white;
     background-color: #555555;
     font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif;
-    letter-spacing: 0.1em;
-   
+    letter-spacing: 0.1em; 
 }
 
-.headerLineTextCenterClass {
+#logMessageDescriptionSpan h3 {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+/*.headerLineTextCenterClass {
+    text-align: center;
+}*/
+
+#configContainer {
+    margin-top: 20px;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 600px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
 }
+
+#configContainer label {
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+    margin-right: 10px;
+}
+
+.selectorStyle {
+    width: 100px;
+}
+
+.selectorContainerStyle {
+    margin-top: 10px;
+}
+

@@ -1,0 +1,83 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>NC Program Remote Transmission</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="keywords" content="cnc, nc, rs232, websocket, configuration">
+        <meta name="description" content="This site is to config the rs232 interface">
+        <meta name="Author" content="Hans Philipp Zimmermann">
+        <meta charset="utf-8">
+        <link href="ex_styles.css" type="text/css" rel="stylesheet">
+        <script type="text/javascript" src="exec_script.js"></script>
+    </head>
+    <body>
+        <section>
+            <span id="headerSpan">
+                <h2>RS232 Configuration</h2>
+            </span>
+            <hr id="headerUnderline"/>
+
+            <div id="configContainer">
+                <div id="baudSelectorContainer" class="selectorContainerStyle">
+                    <label for="baudSelector">Baudrate: </label>
+                    <select name="baudrateSelect" id="baudSelector" class="selectorStyle" onchange="onBaudSelectBoxSelectionChanged()">
+                        <option value="undef">- - -</option>
+                        <option value="75">75</option>
+                        <option value="300">300</option>
+                        <option value="1200">1200</option>
+                        <option value="2400">2400</option>
+                        <option value="4800">4800</option>
+                        <option value="9600">9600</option>
+                        <option value="14400">14400</option>
+                        <option value="19200">19200</option>
+                        <option value="28800">28800</option>
+                        <option value="38400">38400</option>
+                        <option value="57600">57600</option>
+                        <option value="115200">115200</option>
+                        <option value="230400">230400</option>
+                        <option value="460800">460800</option>
+                    </select>
+                </div>
+                <div id="dataBitSelectorContainer" class="selectorContainerStyle">
+                    <label for="dataBitSelector">Databits:</label>
+                    <select name="databitSelect" id="dataBitSelector" class="selectorStyle" onchange="onDataBitSelectBoxSelectionChanged()">
+                        <option value="undef">- - -</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                    </select>
+                </div>
+                <div id="paritySelectorContainer" class="selectorContainerStyle">
+                    <label for="paritySelector">Parity:</label>
+                    <select name="paritySelect" id="paritySelector" class="selectorStyle" onchange="onParitySelectBoxSelectionChanged()">
+                        <option value="undef">- - -</option>
+                        <option value="none">None</option>
+                        <option value="even">Even</option>
+                        <option value="odd">Odd</option>
+                    </select>
+                </div>
+                <div id="stoppBitSelectorContainer" class="selectorContainerStyle">
+                    <label for="stoppBitSelector">Stoppbits:</label>
+                    <select name="stoppBitSelect" id="stoppBitSelector" class="selectorStyle" onchange="onStoppBitSelectBoxSelectionChanged()">
+                        <option value="undef">- - -</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+
+            </div>
+            <hr/>
+            <div id="configPageButtonContainer" class="centerHClass">
+                <button id="backButton" class="gButtonClass" onclick="onConfigPageBackButtonClicked()">&#8249;  Back</button>
+            </div>
+            <hr/>
+            <span id="logMessageDescriptionSpan">
+                <h3>Log Messages:</h3>
+            </span>
+            <span id="logSpan">
+                <textarea readonly id="log_text_area" name="logTextArea" onclick="onTextAreaClicked()"></textarea>
+            </span>
+        </section>
+    </body>
+<html>

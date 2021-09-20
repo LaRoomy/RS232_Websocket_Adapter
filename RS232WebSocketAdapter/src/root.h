@@ -78,4 +78,8 @@ class RootComponent
 
         void notifyUser(String msg);
 
+        void onBaudrateConfigTransmission(const char* data);
+        void onDatabitConfigTransmission(const char* data);
+        void onParityConfigTransmission(const char* data);
+        void onStoppbitConfigTransmission(const char* data);
 };

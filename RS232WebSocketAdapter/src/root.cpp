@@ -6,7 +6,7 @@ void RootComponent::init(){
     // TODO: load the configuration from eeprom !!!
 
 
-    this->sHandler += this;// subscribe callback
+    this->sHandler += this;// subscribe serial transmission callback
 
     // Serial port for debugging purposes
     Serial.begin(115200);
@@ -36,6 +36,11 @@ void RootComponent::init(){
     // Route for root / web page
     this->server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send(LittleFS, "/webSocket_nc_Transmission.html", String(), false);
+    });
+
+    // Route for config / web page
+    this->server.on("/webSocket_nc_Configuration.html", HTTP_GET, [](AsyncWebServerRequest *request){
+        request->send(LittleFS, "/webSocket_nc_Configuration.html", String(), false);
     });
 
     // Route for javascript file
@@ -167,7 +172,28 @@ void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 
         if(data[0] == '_'){ 
 
-          // TODO: handle the config messages!
+          // TODO: handle all config messages!
+
+          switch(data[5]){
+            case 'B':
+              // this is a baudrate config command
+              this->onBaudrateConfigTransmission((char*)data);
+              break;
+            case 'D':
+              // this is a databit config command
+              this->onDatabitConfigTransmission((char*)data);
+              break;
+            case 'P':
+              // this is a parity config command
+              this->onParityConfigTransmission((char*)data);
+              break;
+            case 'S':
+              // this is a stoppbit config command
+              this->onStoppbitConfigTransmission((char*)data);
+              break;
+            default:
+              break;
+          }
 
         } 
         else {
@@ -214,4 +240,79 @@ void RootComponent::notifyUser(String msg){
     String usermsg("_Cumg");
     usermsg += msg;
     this->ws.textAll(usermsg);
+}
+
+void RootComponent::onBaudrateConfigTransmission(const char* data){
+
+  String baud;
+
+  for(unsigned int i = 6; i < 12; i++){
+    if(data[i] == 'E'){
+      break;
+    }
+    else {
+      baud += data[i];
+    }
+  }
+
+  // notify user!
+
+}
+
+void RootComponent::onDatabitConfigTransmission(const char* data){
+  if(data[6] == '5'){
+    // 5 databits
+
+  }
+  else if(data[6] == '6'){
+    // 6 databits
+
+  }
+  else if(data[6] == '7'){
+    // 7 databits
+
+  }
+  else if(data[6] == '8'){
+    // 8 databits
+
+  }
+}
+
+void RootComponent::onParityConfigTransmission(const char* data){
+  if(data[6] == 'n'){
+    // parity: none
+
+
+    // notify user!
+
+  }
+  else if(data[6] == 'e'){
+    // parity even
+
+
+    // notify user!
+
+  }
+  else if(data[6] == 'o'){
+    // parity odd
+
+    // notify user!
+
+  }
+}
+
+void RootComponent::onStoppbitConfigTransmission(const char* data){
+  if(data[6] == '1'){
+    // one stoppbit
+
+
+    // notify user!
+
+  }
+  else if(data[6] == '2'){
+    // two stoppbits
+
+
+    // notify user!
+  }
 }

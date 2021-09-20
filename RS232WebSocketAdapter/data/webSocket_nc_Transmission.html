@@ -15,20 +15,20 @@
             <span id="headerSpan">
                 <h2>RS232 Websocket Bridge</h2>
             </span>
-            <span>
+            <hr id="headerUnderline"/>
+            <span id="ncTextSpan">
                 <textarea id="nc_content_text_area" name="NCContentTextArea"> - place the nc content here - </textarea>
             </span>
             <div id="send_receive_button_container" class="centerHClass">
                 <button id="sendButton" class="gButtonClass">Send</button>
                 <button id="receiveButton" class="gButtonClass">Receive</button>
+                <button id="configButton" class="gButtonClass">Config</button>
             </div>
-            <span id="notificationAreaSpan">
-                <p id="notificationView">Notification</p>
-            </span>
-            <span id="logMessageDescriptionSpan" class="headerLineTextCenterClass">
+            <hr/>
+            <span id="logMessageDescriptionSpan">
                 <h3>Log Messages:</h3>
             </span>
-            <span>
+            <span id="logSpan">
                 <textarea readonly id="log_text_area" name="logTextArea" onclick="onTextAreaClicked()"></textarea>
             </span>
         </section>

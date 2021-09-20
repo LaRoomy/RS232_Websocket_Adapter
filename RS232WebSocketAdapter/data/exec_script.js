@@ -79,6 +79,7 @@ function notifyUser(message){
 function initControls(){
     document.getElementById('sendButton').addEventListener('click', onSendButtonClicked);
     document.getElementById('receiveButton').addEventListener('click', onReceiveButtonClicked);
+    document.getElementById('configButton').addEventListener('click', onConfigButtonClicked);
 }
 
 function onLoad(event){
@@ -111,6 +112,14 @@ function onSendButtonClicked(){
 
 function onReceiveButtonClicked(){
     webSocket.send("Receive");
+}
+
+function onConfigButtonClicked(){
+    location.href = "webSocket_nc_Configuration.html"
+}
+
+function onConfigPageBackButtonClicked(){
+    location.href = "webSocket_nc_Transmission.html"
 }
 
 function sendData(type, data, length){
@@ -263,5 +272,83 @@ function onTextAreaClicked(){
     document.getElementById('log_text_area').value = "";
 }
 
+function onBaudSelectBoxSelectionChanged(){
+    var bBox = document.getElementById("baudSelector");
+
+    if(bBox.value == "undef"){
+        notifyUser("Invalid Baudrate selection");
+    }
+    else {
+        var configString = "_C000";
+        configString += 'B';
+        configString += bBox.value;
+        configString += 'E';
+
+        //webSocket.send(configString);
+
+        // temp!
+        notifyUser(configString);
+    }
+}
+
+function onDataBitSelectBoxSelectionChanged(){
+    var dataBBox = document.getElementById("dataBitSelector");
+
+    if(dataBBox.value == "undef"){
+        notifyUser("Invalid Databit selection");
+    }
+    else {
+        var configString = "_C000";
+        configString += 'D';
+        configString += dataBBox.value;
+        configString += 'E';
+
+        //webSocket.send(configString);
+
+        // temp!
+        notifyUser(configString);
+
+    }
+}
+
+function onParitySelectBoxSelectionChanged(){
+    var parBox = document.getElementById("paritySelector");
+
+    if(parBox.value == "undef"){
+        notifyUser("Invalid Parity selection");
+    }
+    else {
+        var configString = "_C000";
+        configString += 'P';
+        configString += parBox.value;
+        configString += 'E';
+
+        //webSocket.send(configString);
+
+        // temp!
+        notifyUser(configString);
+
+    }
+}
+
+function onStoppBitSelectBoxSelectionChanged(){
+    var stpBox = document.getElementById("stoppBitSelector");
+
+    if(stpBox.value == "undef"){
+        notifyUser("Invalid Stoppbit selection");
+    }
+    else {
+        var configString = "_C000";
+        configString += 'S';
+        configString += stpBox.value;
+        configString += 'E';
+
+        //webSocket.send(configString);
+
+        // temp!
+        notifyUser(configString);
+
+    }
+}
 
 
