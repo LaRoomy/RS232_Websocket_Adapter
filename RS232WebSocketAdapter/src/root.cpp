@@ -1,6 +1,8 @@
 #include "root.h"
 
 
+
+
 void RootComponent::init(){
 
     // TODO: load the configuration from eeprom !!!
@@ -12,6 +14,10 @@ void RootComponent::init(){
     Serial.begin(115200);
 
     LittleFS.begin();
+
+    EEPROM.begin(EE_PROM_SIZE);
+
+    this->loadPersistentData();
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);// hint: low == led on
@@ -236,6 +242,34 @@ void RootComponent::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client
   }
 }
 
+void RootComponent::loadPersistentData(){
+
+  uint8_t val;
+
+  val = EEPROM.read(EE_BAUD_ADDR);
+  if(val != 255){
+      this->scBaudRate = this->baudIndexToBaudValue(val);
+  }
+  val = EEPROM.read(EE_DATAB_ADDR);
+  if(val != 255){
+    if(val == 5)this->scDatabits = DATABITS::FIVE;
+    if(val == 6)this->scDatabits = DATABITS::SIX;
+    if(val == 7)this->scDatabits = DATABITS::SEVEN;
+    if(val == 8)this->scDatabits = DATABITS::EIGHT;
+  }
+  val = EEPROM.read(EE_PARITY_ADDR);
+  if(val != 255){
+    if(val == 0)this->scParity = PARITY::NONE;
+    if(val == 1)this->scParity = PARITY::EVEN;
+    if(val == 2)this->scParity = PARITY::ODD;
+  }
+  val = EEPROM.read(EE_STOPPB_ADDR);
+  if(val != 255){
+    if(val == 1)this->scStoppbits = STOPPBITS::ONE;
+    if(val == 2)this->scStoppbits = STOPPBITS::TWO;
+  }
+}
+
 void RootComponent::notifyUser(String msg){
     String usermsg("_Cumg");
     usermsg += msg;
@@ -251,68 +285,227 @@ void RootComponent::onBaudrateConfigTransmission(const char* data){
       break;
     }
     else {
-      baud += data[i];
+      baud += (char)data[i];
     }
   }
 
-  // notify user!
+  notifyUser(baud);
 
+  auto bIndex =
+    this->baudIndexFromBaudValue(
+      baud.toInt()
+      );
+
+    if(bIndex == 255){
+      this->notifyUser("Error invalid baud value (invalid index)");
+    }
+    else {
+      this->scBaudRate = baud.toInt();
+
+      EEPROM.write(EE_BAUD_ADDR, bIndex);
+
+      EEPROM.commit()
+        ? this->notifyUser("Baudrate successful saved.")
+        : this->notifyUser("Error saving Baudrate.");
+    }
 }
 
 void RootComponent::onDatabitConfigTransmission(const char* data){
   if(data[6] == '5'){
     // 5 databits
+    this->scDatabits = DATABITS::FIVE;
 
+    EEPROM.write(EE_DATAB_ADDR, 5);
+
+    if(EEPROM.commit()){
+      this->notifyUser(DATABITS_SAVE_SUCCESS_MESSAGE);
+    }
+    else {
+      this->notifyUser(DATABITS_SAVE_FAILED_MESSAGE);
+    }
   }
   else if(data[6] == '6'){
     // 6 databits
+    this->scDatabits = DATABITS::SIX;
 
+    EEPROM.write(EE_DATAB_ADDR, 6);
+
+    if(EEPROM.commit()){
+      this->notifyUser(DATABITS_SAVE_SUCCESS_MESSAGE);
+    }
+    else {
+      this->notifyUser(DATABITS_SAVE_FAILED_MESSAGE);
+    }
   }
   else if(data[6] == '7'){
     // 7 databits
+    this->scDatabits = DATABITS::SEVEN;
 
+    EEPROM.write(EE_DATAB_ADDR, 7);
+
+    if(EEPROM.commit()){
+      this->notifyUser(DATABITS_SAVE_SUCCESS_MESSAGE);
+    }
+    else {
+      this->notifyUser(DATABITS_SAVE_FAILED_MESSAGE);
+    }
   }
   else if(data[6] == '8'){
     // 8 databits
+    this->scDatabits = DATABITS::EIGHT;
 
+    EEPROM.write(EE_DATAB_ADDR, 8);
+
+    EEPROM.commit()
+      ? this->notifyUser(DATABITS_SAVE_SUCCESS_MESSAGE)
+      : this->notifyUser(DATABITS_SAVE_FAILED_MESSAGE);
+
+      // TODO: apply this syntax everywhere (if it works!)
   }
 }
 
 void RootComponent::onParityConfigTransmission(const char* data){
+  
   if(data[6] == 'n'){
     // parity: none
+    this->scParity = PARITY::NONE;
 
-
-    // notify user!
-
+    EEPROM.write(EE_PARITY_ADDR, 0);
+    
+    if(EEPROM.commit()){
+      this->notifyUser("Parity successful saved.");
+    }
+    else {
+      this->notifyUser("Error occured while saving parity.");
+    }
   }
   else if(data[6] == 'e'){
     // parity even
+    this->scParity = PARITY::EVEN;
 
+    EEPROM.write(EE_PARITY_ADDR, 1);
 
-    // notify user!
-
+    if(EEPROM.commit()){
+      this->notifyUser("Parity successful saved.");
+    }
+    else {
+      this->notifyUser("Error occured while saving parity.");
+    }
   }
   else if(data[6] == 'o'){
     // parity odd
+    this->scParity = PARITY::ODD;
 
-    // notify user!
+    EEPROM.write(EE_PARITY_ADDR, 2);
 
+    if(EEPROM.commit()){
+      this->notifyUser("Parity successful saved.");
+    }
+    else {
+      this->notifyUser("Error occured while saving parity.");
+    }
+  }
+  else {
+    this->notifyUser("Invalid parity data");
   }
 }
 
 void RootComponent::onStoppbitConfigTransmission(const char* data){
   if(data[6] == '1'){
     // one stoppbit
+    this->scStoppbits = STOPPBITS::ONE;
 
+    EEPROM.write(EE_STOPPB_ADDR, 1);
 
-    // notify user!
-
+    if(EEPROM.commit()) {
+      this->notifyUser("Stoppbits successful saved.");
+    }
+    else {
+      this->notifyUser("Error saving stoppbits.");
+    }
   }
   else if(data[6] == '2'){
     // two stoppbits
+    this->scStoppbits = STOPPBITS::TWO;
+    
+    EEPROM.write(EE_STOPPB_ADDR, 2);
 
-
-    // notify user!
+    if(EEPROM.commit()) {
+      this->notifyUser("Stoppbits successful saved.");
+    }
+    else {
+      this->notifyUser("Error saving stoppbits.");
+    }
   }
+}
+
+uint8_t RootComponent::baudIndexFromBaudValue(long baudVal){
+  switch (baudVal){
+    case 75:
+      return 0;
+    case 300:
+      return 1;
+    case 1200:
+      return 2;
+    case 2400:
+      return 3;
+    case 4800:
+      return 4;
+    case 9600:
+      return 5;
+    case 14400:
+      return 6;
+    case 19200:
+      return 7;
+    case 28800:
+      return 8;
+    case 38400:
+      return 9;
+    case 57600:
+      return 10;
+    case 115200:
+      return 11;
+    case 230400:
+      return 12;
+    case 460800:
+      return 13;
+    default:
+      return 255;
+  }
+}
+
+long RootComponent::baudIndexToBaudValue(uint8_t index){
+   switch (index){
+    case 0:
+      return 75;
+    case 1:
+      return 300;
+    case 2:
+      return 1200;
+    case 3:
+      return 2400;
+    case 4:
+      return 4800;
+    case 5:
+      return 9600;
+    case 6:
+      return 14400;
+    case 7:
+      return 19200;
+    case 8:
+      return 28800;
+    case 9:
+      return 38400;
+    case 10:
+      return 57600;
+    case 11:
+      return 115200;
+    case 12:
+      return 230400;
+    case 13:
+      return 460800;
+    default:
+      return 0;
+  }
+
 }

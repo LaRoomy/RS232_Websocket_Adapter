@@ -97,17 +97,7 @@ function onSendButtonClicked(){
 
     notifyUser("Sending data. Size: " + length);
 
-    //notifyUser("Send was clicked");
-
-
     sendData('data', data, length);
-
-    //webSocket.send(data);
-
-
-    //notifyUser(data);
-
-    //notifyUser("This is a Message !")
 }
 
 function onReceiveButtonClicked(){
@@ -115,11 +105,11 @@ function onReceiveButtonClicked(){
 }
 
 function onConfigButtonClicked(){
-    location.href = "webSocket_nc_Configuration.html"
+    location.href = "webSocket_nc_Configuration.html";
 }
 
 function onConfigPageBackButtonClicked(){
-    location.href = "webSocket_nc_Transmission.html"
+    location.href = "/";
 }
 
 function sendData(type, data, length){
@@ -284,7 +274,7 @@ function onBaudSelectBoxSelectionChanged(){
         configString += bBox.value;
         configString += 'E';
 
-        //webSocket.send(configString);
+        webSocket.send(configString);
 
         // temp!
         notifyUser(configString);
@@ -303,10 +293,10 @@ function onDataBitSelectBoxSelectionChanged(){
         configString += dataBBox.value;
         configString += 'E';
 
-        //webSocket.send(configString);
+        webSocket.send(configString);
 
         // temp!
-        notifyUser(configString);
+        //notifyUser(configString);
 
     }
 }
@@ -323,10 +313,10 @@ function onParitySelectBoxSelectionChanged(){
         configString += parBox.value;
         configString += 'E';
 
-        //webSocket.send(configString);
+        webSocket.send(configString);
 
         // temp!
-        notifyUser(configString);
+        //notifyUser(configString);
 
     }
 }
@@ -343,10 +333,10 @@ function onStoppBitSelectBoxSelectionChanged(){
         configString += stpBox.value;
         configString += 'E';
 
-        //webSocket.send(configString);
+        webSocket.send(configString);
 
         // temp!
-        notifyUser(configString);
+        //notifyUser(configString);
 
     }
 }
