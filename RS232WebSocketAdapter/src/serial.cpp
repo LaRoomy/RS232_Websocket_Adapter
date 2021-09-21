@@ -128,18 +128,76 @@ void SerialTransmissionHandler::config(unsigned long baudrate,DATABITS db, PARIT
 }
 
 void SerialTransmissionHandler::sendData(){
-    this->transmissionIndex = 0;
-    this->currentTransmission = TRANSMISSION_TYPE::SEND;
+    if(this->currentTransmission != TRANSMISSION_TYPE::NONE){
+        if(this->eventHandler != nullptr){
+            this->eventHandler->onError(TRANSMISSION_ERROR::TRANSMISSION_ALREADY_IN_PROGRESS);
+        }
+    }
+    else {
+        this->transmissionIndex = 0;
+        this->currentTransmission = TRANSMISSION_TYPE::SEND;
 
-    Serial.begin(this->baud, this->conf);
+        Serial.begin(this->baud, this->conf);
+    }
 }
 
 void SerialTransmissionHandler::sendData(String data){
-    this->transmissionData = data;
-    this->transmissionIndex = 0;
-    this->currentTransmission = TRANSMISSION_TYPE::SEND;
+    if(this->currentTransmission != TRANSMISSION_TYPE::NONE){
+        if(this->eventHandler != nullptr){
+            this->eventHandler->onError(TRANSMISSION_ERROR::TRANSMISSION_ALREADY_IN_PROGRESS);
+        }
+    }
+    else {
+        this->transmissionData = data;
+        this->transmissionIndex = 0;
+        this->currentTransmission = TRANSMISSION_TYPE::SEND;
 
-    Serial.begin(this->baud, this->conf);
+        Serial.begin(this->baud, this->conf);
+    }
+}
+
+void SerialTransmissionHandler::startReceiving(){
+    if(this->currentTransmission != TRANSMISSION_TYPE::NONE){
+        if(this->eventHandler != nullptr){
+            this->eventHandler->onError(TRANSMISSION_ERROR::TRANSMISSION_ALREADY_IN_PROGRESS);
+        }
+    }
+    else {
+        this->transmissionIndex = 0;
+        this->transmissionData.clear();
+        this->currentTransmission = TRANSMISSION_TYPE::RECEIVE;
+
+        Serial.begin(this->baud, this->conf);
+
+        if(this->eventHandler != nullptr){
+            this->eventHandler->onReceptionStarted();
+        }
+
+        timer.attach(0.5, SerialTransmissionHandler::onTimerTick);
+    }
+}
+
+void SerialTransmissionHandler::stopReceiving(){
+    if(this->currentTransmission == TRANSMISSION_TYPE::RECEIVE){
+
+        Serial.end();
+        this->timer.detach();
+        ticks = 0;
+    
+        if(this->eventHandler != nullptr){
+            this->eventHandler->onReceptionComplete(this->transmissionData, this->transmissionIndex);
+        }
+        this->transmissionIndex = 0;
+        this->transmissionData.clear();
+        this->currentTransmission = TRANSMISSION_TYPE::NONE;
+    }
+    else {
+        if(this->currentTransmission == TRANSMISSION_TYPE::SEND){
+            if(this->eventHandler != nullptr){
+                this->eventHandler->onError(TRANSMISSION_ERROR::INVALID_SEND_IS_ACTIVE);
+            }
+        }
+    }
 }
 
 void SerialTransmissionHandler::setTransmissionData(String data, bool eraseHeader, unsigned int headerSize){
@@ -194,9 +252,20 @@ void SerialTransmissionHandler::processSerialTransmission(){
             char c = (char)Serial.read();
             this->transmissionData += c;
             transmissionIndex++;
+            ticks = 0;
 
             // detect finalization!
 
+
+        }
+        else {
+            if(this->autoDetectEndOfTransmission){
+                if(transmissionIndex > 0){
+                    if(ticks >= 2){
+                        this->stopReceiving();
+                    }
+                }
+            }
         }
     }    
 }
@@ -218,4 +287,8 @@ void SerialTransmissionHandler::terminate(){
     this->transmissionIndex = 0;
     this->transmissionData.clear();
     this->currentTransmission = TRANSMISSION_TYPE::NONE;
+}
+
+void SerialTransmissionHandler::onTimerTick(){
+    ticks++;
 }

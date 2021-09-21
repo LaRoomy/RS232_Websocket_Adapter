@@ -48,7 +48,9 @@ class RootComponent
         void onLoop();
 
         void onSendComplete(unsigned int bytesTransferred);
-        void onReceptionComplete(const char* buffer, size_t size);
+        void onReceptionComplete(const String& buffer, size_t size);
+        void onReceptionStarted();
+        void onError(TRANSMISSION_ERROR error);
 
         //void handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
 
@@ -59,17 +61,18 @@ class RootComponent
         // this is temp: this is only a placeholder for the dynamic values implemented later
 
         // network credentials work
-        const char* ssid = "CT Workstation AP";
-        const char* password = "30321065";
+        //const char* ssid = "CT Workstation AP";
+        //const char* password = "30321065";
 
         // network credentials home
-        //const char* ssid = "Delker Zimmi Net";
-        //const char* password = "60458561901103846208";
+        const char* ssid = "Delker Zimmi Net";
+        const char* password = "60458561901103846208";
 
 
     private:
         AsyncWebServer server = AsyncWebServer(80);
         AsyncWebSocket ws = AsyncWebSocket("/ws");
+        
         SerialTransmissionHandler sHandler;
 
         bool isConnected = false;
@@ -104,6 +107,8 @@ class RootComponent
         void onDatabitConfigTransmission(const char* data);
         void onParityConfigTransmission(const char* data);
         void onStoppbitConfigTransmission(const char* data);
+        void onReceiveCommand();
+        void onStopReception();
         void onConfigurationRequest();
         void onResetCommand();
 

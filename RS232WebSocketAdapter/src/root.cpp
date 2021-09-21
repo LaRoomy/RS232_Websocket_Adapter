@@ -5,10 +5,18 @@
 
 void RootComponent::init(){
 
+    uint8_t ledState = 1;
+
     // TODO: load the configuration from eeprom !!!
 
 
     this->sHandler += this;// subscribe serial transmission callback
+
+    // temp !!!!!!!!!!
+    this->sHandler.setAutoDetectEndOfTransmission(true);
+
+    // TODO: make this as a setting!
+    this->
 
     // Serial port for debugging purposes
     Serial.begin(115200);
@@ -24,18 +32,22 @@ void RootComponent::init(){
 
     pinMode(D2, INPUT);
     pinMode(D5, OUTPUT);
-    digitalWrite(D5, HIGH);// hint: low == led on
+    digitalWrite(D5, ledState);// hint: low == led on
   
     // Connect to Wi-Fi
     WiFi.begin(ssid, password);
     
     while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
+        delay(500);
         Serial.println("Connecting to WiFi..");
+        ledState = !ledState;
+        digitalWrite(D5, ledState);
     }
 
     // Print ESP Local IP Address
     Serial.println(WiFi.localIP());
+    // set led to on, to indicate connection status
+    digitalWrite(LED_BUILTIN, LOW);
 
     initWebSocket();
 
@@ -66,25 +78,32 @@ void RootComponent::init(){
     Serial.flush();
     Serial.end();
 
+    digitalWrite(D5, LOW);
 }
 
 void RootComponent::onLoop(){
-     //delay(1);// delete???
 
     ws.cleanupClients();
 
+    // handle serial transmission
     sHandler.processSerialTransmission();
 
-    // temp:
-    //digitalWrite(ledPin, ledState);
 
     if(digitalRead(D2) == LOW){
         digitalWrite(D5, LOW);
-        digitalWrite(LED_BUILTIN, LOW);
+        //digitalWrite(LED_BUILTIN, LOW);
     }
     else{
         digitalWrite(D5, HIGH);
-        digitalWrite(LED_BUILTIN, HIGH);
+        //digitalWrite(LED_BUILTIN, HIGH);
+    }
+
+    // indicate connection status with system led
+    if(WiFi.isConnected()){
+      digitalWrite(LED_BUILTIN, LOW);
+    }
+    else {
+      digitalWrite(LED_BUILTIN, HIGH);
     }
 }
 
@@ -94,12 +113,36 @@ void RootComponent::onSendComplete(unsigned int bytesTransferred){
     this->notifyUser(message);
 }
 
-void RootComponent::onReceptionComplete(const char* buffer, size_t size){
+void RootComponent::onReceptionComplete(const String& buffer, size_t size){
     String message(I_MSG_RECEIVE_OPERATION_COMPLETE);
     message += size;
     this->notifyUser(message);
 
+    this->ws.textAll("_Csrt");
+
     // TODO: send buffer to Web-page!
+
+    String setter("_Crrr");
+    setter += buffer;
+
+    this->ws.textAll(setter);
+}
+
+void RootComponent::onReceptionStarted(){
+    ws.textAll("_CsrsE");
+}
+
+void RootComponent::onError(TRANSMISSION_ERROR error){
+  switch(error){
+    case TRANSMISSION_ERROR::TRANSMISSION_ALREADY_IN_PROGRESS:
+      this->notifyUser(E_MSG_TRANSMISSION_ALREADY_IN_PROGRESS);
+      break;
+    case TRANSMISSION_ERROR::INVALID_SEND_IS_ACTIVE:
+      this->notifyUser(E_MSG_INVALID_SEND_IS_ACTIVE);
+      break;
+    default:
+      break;
+  }
 }
 
 void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len){
@@ -205,10 +248,17 @@ void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
               // this is a reset command
               this->onResetCommand();
               break;
+            case 'X':
+              // this is a receive command
+              this->onReceiveCommand();
+              break;
+            case 'M':
+              // this is a stop-reception command
+              this->onStopReception();
+              break;
             default:
               break;
           }
-
         } 
         else {
           // the config transmission doesn't exceed the max-single transmission size
@@ -296,8 +346,6 @@ void RootComponent::onBaudrateConfigTransmission(const char* data){
       baud += (char)data[i];
     }
   }
-
-  notifyUser(baud);
 
   auto bIndex =
     this->baudIndexFromBaudValue(
@@ -418,6 +466,15 @@ void RootComponent::onStoppbitConfigTransmission(const char* data){
   }
 }
 
+void RootComponent::onReceiveCommand(){
+    this->sHandler.config(this->scBaudRate, this->scDatabits, this->scParity, this->scStoppbits);
+    this->sHandler.startReceiving();
+}
+
+void RootComponent::onStopReception(){
+  this->sHandler.stopReceiving();
+}
+
 void RootComponent::onConfigurationRequest(){
   String configurationString("_Ccrq");
 
@@ -434,7 +491,7 @@ void RootComponent::onConfigurationRequest(){
   configurationString += (uint8_t)this->scStoppbits;
   configurationString += 'E';
 
-  ws.textAll(configurationString);
+  this->ws.textAll(configurationString);
 }
 
 void RootComponent::onResetCommand(){
@@ -444,8 +501,16 @@ void RootComponent::onResetCommand(){
     this->scStoppbits = STOPPBITS::ONE;
 
     EEPROM.write(EE_BAUD_ADDR, this->baudIndexFromBaudValue(this->scBaudRate));
-    EEPROM.write(EE_DATAB_ADDR, )
+    EEPROM.write(EE_DATAB_ADDR, (uint8_t)this->scDatabits);
+    EEPROM.write(EE_PARITY_ADDR, (uint8_t)this->scParity);
+    EEPROM.write(EE_STOPPB_ADDR, (uint8_t)this->scStoppbits);
 
+    if(EEPROM.commit()){
+      this->notifyUser(I_MSG_CONFIG_RESET_SUCCESS);
+    }
+    else {
+      this->notifyUser(E_MSG_CONFIG_RESET_ERROR);
+    }
     this->onConfigurationRequest();
 }
 

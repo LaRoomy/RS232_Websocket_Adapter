@@ -2,10 +2,9 @@
 
 
 var gateway = `ws://${window.location.hostname}/ws`;
-
 var webSocket;
-
 var dataPackageArray = [];
+var receiveButtonInStopMode = false;
 
 function initWebSocket(){
     console.log("init WebSocket Session");
@@ -72,18 +71,37 @@ function onWebSocketMessage(event){
             //notifyUser(event.data);
 
         }
+        else if((event.data[2] == 's')&&(event.data[3] == 'r')&&(event.data[4] == 's')){
+            // reception started message
+            document.getElementById('receiveButton').innerHTML = "Stop";
+            receiveButtonInStopMode = true;
+            notifyUser("Receive Operation started...");
+        }
+        else if((event.data[2] == 's')&&(event.data[3] == 'r')&&(event.data[4] == 't')){
+            // reception terminated
+            document.getElementById('receiveButton').innerHTML = "Receive";
+            receiveButtonInStopMode = false;
+        }
+        else if((event.data[2] == 'r')&&(event.data[3] == 'r')&&(event.data[4] == 'r')){
+            // data received
+
+            var outString = "";
+
+            for(var i = 5; i < event.data.length; i++){
+                outString += event.data[i];
+            }
+            
+            // temp?
+            document.getElementById('nc_content_text_area').value = outString;
+        }
     }
 }
 
 function notifyUser(message){
-
     var tArea = document.getElementById("log_text_area");
     var pageType = "";
-
     document.getElementById("log_text_area").value += ('\n' + message);
-
     tArea.scrollTop = tArea.scrollHeight;
-
 }
 
 function initControls(){
@@ -105,7 +123,6 @@ function onLoad(event){
             document.getElementById('nc_content_text_area').value = localStorage.getItem('ncContent');
         }
     }
-
     initWebSocket();
     initControls();
 }
@@ -131,7 +148,13 @@ function onSendButtonClicked(){
 }
 
 function onReceiveButtonClicked(){
-    webSocket.send("Receive");
+    if(receiveButtonInStopMode){
+        webSocket.send("_C000ME");
+    }
+    else {
+        document.getElementById("nc_content_text_area").value = "";
+        webSocket.send("_C000XE");
+    }
 }
 
 function onConfigButtonClicked(){
@@ -140,7 +163,7 @@ function onConfigButtonClicked(){
 
 function onConfigPageBackButtonClicked(){
 
-    // in production-mode
+    // in release-mode
     location.href = "/";
 
     // for testing purposes!
@@ -228,11 +251,7 @@ function sendData(type, data, length){
                     else {
                         segmentHeaderString += segmentIndex;
                     }
-                }
-
-                // TEMP!!!
-                //notifyUser("Formatted Header: " + segmentHeaderString);
-                
+                }                
                 //webSocket.send(segmentHeaderString + dataToSend);
                 dataPackageArray[segmentIndex] = (segmentHeaderString + dataToSend);
                                 
@@ -277,9 +296,6 @@ function sendData(type, data, length){
                     sheaderStr += segmentIndex;
                 }
             }
-            // TEMP!!!
-            //notifyUser("Formatted Header: " + sheaderStr);
-
             //webSocket.send(sheaderStr + dataToSend);
             dataPackageArray[segmentIndex] = (sheaderStr + dataToSend);
 
