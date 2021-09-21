@@ -50,6 +50,10 @@ function onWebSocketMessage(event){
         else if((event.data[2] == 'c')&&(event.data[3] == 'o')&&(event.data[4] == 'n')){
             // status message - connected
             notifyUser("Status: Remote socket ready.");
+            // request configuration (if this is the config page)
+            if(pageType == 'config'){
+                webSocket.send("_C000GE");
+            }
         }
         else if((event.data[2] == 'u')&&(event.data[3] == 'm')&&(event.data[4] == 'g')){
             // display message to user
@@ -59,16 +63,22 @@ function onWebSocketMessage(event){
             }
             notifyUser(msg);
         }
+        else if((event.data[2] == 'c')&&(event.data[3] == 'r')&&(event.data[4] == 'q')){
+            // configuration request response
+            readConfigString(event.data);
+
+
+            // temp:
+            //notifyUser(event.data);
+
+        }
     }
-
-    // temp ?!
-    //notifyUser(event.data);
-
 }
 
 function notifyUser(message){
 
     var tArea = document.getElementById("log_text_area");
+    var pageType = "";
 
     document.getElementById("log_text_area").value += ('\n' + message);
 
@@ -83,11 +93,31 @@ function initControls(){
 }
 
 function onLoad(event){
+
+    if(document.getElementById('configBody') != null){
+        pageType = "config";
+    }
+    else {
+        pageType = "transmission";
+        // load content! if there is one!
+        var ncContent = localStorage.getItem('ncContent');
+        if(ncContent.length > 0){
+            document.getElementById('nc_content_text_area').value = localStorage.getItem('ncContent');
+        }
+    }
+
     initWebSocket();
     initControls();
 }
 
+function onBeforeUnload(){
+    if(pageType == 'transmission'){
+        localStorage.setItem('ncContent', document.getElementById('nc_content_text_area').value);
+    }
+}
+
 window.addEventListener('load', onLoad);
+window.addEventListener('unload', onBeforeUnload);
 
 function onSendButtonClicked(){
 
@@ -109,7 +139,17 @@ function onConfigButtonClicked(){
 }
 
 function onConfigPageBackButtonClicked(){
+
+    // in production-mode
     location.href = "/";
+
+    // for testing purposes!
+    //location.href = "webSocket_nc_Transmission.html";
+}
+
+function onConfigPageResetButtonClicked(){
+    // send reset command
+    webSocket.send("_C000RE");
 }
 
 function sendData(type, data, length){
@@ -275,9 +315,6 @@ function onBaudSelectBoxSelectionChanged(){
         configString += 'E';
 
         webSocket.send(configString);
-
-        // temp!
-        notifyUser(configString);
     }
 }
 
@@ -294,10 +331,6 @@ function onDataBitSelectBoxSelectionChanged(){
         configString += 'E';
 
         webSocket.send(configString);
-
-        // temp!
-        //notifyUser(configString);
-
     }
 }
 
@@ -314,10 +347,6 @@ function onParitySelectBoxSelectionChanged(){
         configString += 'E';
 
         webSocket.send(configString);
-
-        // temp!
-        //notifyUser(configString);
-
     }
 }
 
@@ -334,10 +363,95 @@ function onStoppBitSelectBoxSelectionChanged(){
         configString += 'E';
 
         webSocket.send(configString);
+    }
+}
 
-        // temp!
-        //notifyUser(configString);
+function readConfigString(configString){
+  // syntax
+  // '_Ccrq' + [br][br] + [db] + [pa] + [sb] + 'E'
 
+    // set baudrate setting
+    var str = "";
+    if(configString[5] != '0'){
+        str += configString[5];
+    }
+    str+= configString[6];
+    var bIndex = parseInt(str);
+    document.getElementById("baudSelector").value =
+        baudValueFromBaudIndex(bIndex);
+
+    // set databit setting
+    if((configString[7] == '5')||(configString[7] == '6')||(configString[7] == '7')||(configString[7] == '8')){
+        str = "";
+        str += configString[7];
+    }
+    else {
+        str = "undef";
+    }
+    document.getElementById("dataBitSelector").value = str;
+
+    // set parity setting
+    str = "";
+    str += configString[8];
+    bIndex = parseInt(str);
+    document.getElementById("paritySelector").value = parityStringFromIndex(bIndex);
+
+    // set stoppbit setting
+    if((configString[9] == '1')||(configString[9] == '2')){
+        str = "";
+        str += configString[9];
+    }
+    else {
+        str = "undef";
+    }
+    document.getElementById("stoppBitSelector").value = str;
+}
+
+function baudValueFromBaudIndex(index) {
+    switch (index){
+        case 0:
+          return "75";
+        case 1:
+          return "300";
+        case 2:
+          return "1200";
+        case 3:
+          return "2400";
+        case 4:
+          return "4800";
+        case 5:
+          return "9600";
+        case 6:
+          return "14400";
+        case 7:
+          return "19200";
+        case 8:
+          return "28800";
+        case 9:
+          return "38400";
+        case 10:
+          return "57600";
+        case 11:
+          return "115200";
+        case 12:
+          return "230400";
+        case 13:
+          return "460800";
+        default:
+          return "undef";
+      }
+}
+
+function parityStringFromIndex(index){
+    switch(index){
+        case 0:
+            return "none";
+        case 1:
+            return "even";
+        case 2:
+            return "odd";
+        default:
+            return "undef";
     }
 }
 

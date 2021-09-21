@@ -31,6 +31,8 @@
 
 #include "stringTable.h"
 
+#define     INVALID_BAUD_INDEX          99
+
 class RootComponent;
 
 RootComponent* getRootClass();
@@ -57,12 +59,12 @@ class RootComponent
         // this is temp: this is only a placeholder for the dynamic values implemented later
 
         // network credentials work
-        //const char* ssid = "CT Workstation AP";
-        //const char* password = "30321065";
+        const char* ssid = "CT Workstation AP";
+        const char* password = "30321065";
 
         // network credentials home
-        const char* ssid = "Delker Zimmi Net";
-        const char* password = "60458561901103846208";
+        //const char* ssid = "Delker Zimmi Net";
+        //const char* password = "60458561901103846208";
 
 
     private:
@@ -102,6 +104,8 @@ class RootComponent
         void onDatabitConfigTransmission(const char* data);
         void onParityConfigTransmission(const char* data);
         void onStoppbitConfigTransmission(const char* data);
+        void onConfigurationRequest();
+        void onResetCommand();
 
         uint8_t baudIndexFromBaudValue(long baudVal);
         long baudIndexToBaudValue(uint8_t index);

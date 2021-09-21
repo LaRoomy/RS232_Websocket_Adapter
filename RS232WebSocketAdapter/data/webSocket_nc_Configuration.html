@@ -10,7 +10,7 @@
         <link href="ex_styles.css" type="text/css" rel="stylesheet">
         <script type="text/javascript" src="exec_script.js"></script>
     </head>
-    <body>
+    <body id="configBody">
         <section>
             <span id="headerSpan">
                 <h2>RS232 Configuration</h2>
@@ -70,6 +70,7 @@
             <hr/>
             <div id="configPageButtonContainer" class="centerHClass">
                 <button id="backButton" class="gButtonClass" onclick="onConfigPageBackButtonClicked()">&#8249;  Back</button>
+                <button id="resetButton" class="gButtonClass" onclick="onConfigPageResetButtonClicked()">Reset</button>
             </div>
             <hr/>
             <span id="logMessageDescriptionSpan">

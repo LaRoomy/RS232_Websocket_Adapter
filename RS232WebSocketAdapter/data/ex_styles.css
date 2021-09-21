@@ -86,6 +86,10 @@ section hr {
     margin-left: 20px;
 }
 
+#resetButton {
+    margin-left: 40px;
+}
+
 .gButtonClass {
     padding: 5px 20px;
     min-width: 160px;

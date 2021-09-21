@@ -89,13 +89,13 @@ void RootComponent::onLoop(){
 }
 
 void RootComponent::onSendComplete(unsigned int bytesTransferred){
-    String message("Send-Operation complete. Bytes transferred: ");
+    String message(I_MSG_SEND_OPERATION_COMPLETE);
     message += bytesTransferred;
     this->notifyUser(message);
 }
 
 void RootComponent::onReceptionComplete(const char* buffer, size_t size){
-    String message("Receive-Operation complete. Bytes received: ");
+    String message(I_MSG_RECEIVE_OPERATION_COMPLETE);
     message += size;
     this->notifyUser(message);
 
@@ -197,6 +197,14 @@ void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
               // this is a stoppbit config command
               this->onStoppbitConfigTransmission((char*)data);
               break;
+            case 'G':
+              // this is a configuration request
+              this->onConfigurationRequest();
+              break;
+            case 'R':
+              // this is a reset command
+              this->onResetCommand();
+              break;
             default:
               break;
           }
@@ -296,8 +304,8 @@ void RootComponent::onBaudrateConfigTransmission(const char* data){
       baud.toInt()
       );
 
-    if(bIndex == 255){
-      this->notifyUser("Error invalid baud value (invalid index)");
+    if(bIndex == INVALID_BAUD_INDEX){
+      this->notifyUser(E_MSG_INVALID_BAUD_VALUE);
     }
     else {
       this->scBaudRate = baud.toInt();
@@ -305,138 +313,140 @@ void RootComponent::onBaudrateConfigTransmission(const char* data){
       EEPROM.write(EE_BAUD_ADDR, bIndex);
 
       EEPROM.commit()
-        ? this->notifyUser("Baudrate successful saved.")
-        : this->notifyUser("Error saving Baudrate.");
+        ? this->notifyUser(I_MSG_BAUDRATE_SAVE_SUCCESS)
+        : this->notifyUser(E_MSG_BAUDRATE_SAVE_FAILED);
     }
 }
 
 void RootComponent::onDatabitConfigTransmission(const char* data){
+
+  bool executeCommit = false;
+
   if(data[6] == '5'){
     // 5 databits
     this->scDatabits = DATABITS::FIVE;
-
     EEPROM.write(EE_DATAB_ADDR, 5);
-
-    if(EEPROM.commit()){
-      this->notifyUser(DATABITS_SAVE_SUCCESS_MESSAGE);
-    }
-    else {
-      this->notifyUser(DATABITS_SAVE_FAILED_MESSAGE);
-    }
+    executeCommit = true;
   }
   else if(data[6] == '6'){
     // 6 databits
     this->scDatabits = DATABITS::SIX;
-
     EEPROM.write(EE_DATAB_ADDR, 6);
-
-    if(EEPROM.commit()){
-      this->notifyUser(DATABITS_SAVE_SUCCESS_MESSAGE);
-    }
-    else {
-      this->notifyUser(DATABITS_SAVE_FAILED_MESSAGE);
-    }
+    executeCommit = true;
   }
   else if(data[6] == '7'){
     // 7 databits
     this->scDatabits = DATABITS::SEVEN;
-
     EEPROM.write(EE_DATAB_ADDR, 7);
+    executeCommit = true;
 
-    if(EEPROM.commit()){
-      this->notifyUser(DATABITS_SAVE_SUCCESS_MESSAGE);
-    }
-    else {
-      this->notifyUser(DATABITS_SAVE_FAILED_MESSAGE);
-    }
   }
   else if(data[6] == '8'){
     // 8 databits
     this->scDatabits = DATABITS::EIGHT;
-
     EEPROM.write(EE_DATAB_ADDR, 8);
+    executeCommit = true;
+  }
+  else {
+    this->notifyUser(E_MSG_INVALID_DATA);
+  }
 
-    EEPROM.commit()
-      ? this->notifyUser(DATABITS_SAVE_SUCCESS_MESSAGE)
-      : this->notifyUser(DATABITS_SAVE_FAILED_MESSAGE);
-
-      // TODO: apply this syntax everywhere (if it works!)
+  if(executeCommit){
+      EEPROM.commit()
+      ? this->notifyUser(I_MSG_DATABITS_SAVE_SUCCESS)
+      : this->notifyUser(E_MSG_DATABITS_SAVE_FAILED);  
   }
 }
 
 void RootComponent::onParityConfigTransmission(const char* data){
+
+  bool executeCommit = false;
   
   if(data[6] == 'n'){
     // parity: none
     this->scParity = PARITY::NONE;
-
     EEPROM.write(EE_PARITY_ADDR, 0);
-    
-    if(EEPROM.commit()){
-      this->notifyUser("Parity successful saved.");
-    }
-    else {
-      this->notifyUser("Error occured while saving parity.");
-    }
+    executeCommit = true;
   }
   else if(data[6] == 'e'){
     // parity even
     this->scParity = PARITY::EVEN;
-
     EEPROM.write(EE_PARITY_ADDR, 1);
-
-    if(EEPROM.commit()){
-      this->notifyUser("Parity successful saved.");
-    }
-    else {
-      this->notifyUser("Error occured while saving parity.");
-    }
+    executeCommit = true;
   }
   else if(data[6] == 'o'){
     // parity odd
     this->scParity = PARITY::ODD;
-
     EEPROM.write(EE_PARITY_ADDR, 2);
-
-    if(EEPROM.commit()){
-      this->notifyUser("Parity successful saved.");
-    }
-    else {
-      this->notifyUser("Error occured while saving parity.");
-    }
+    executeCommit = true;
   }
   else {
-    this->notifyUser("Invalid parity data");
+    this->notifyUser(E_MSG_INVALID_DATA);
+  }
+
+  if(executeCommit){
+    EEPROM.commit()
+    ? this->notifyUser(I_MSG_PARITY_SAVE_SUCCESS)
+    : this->notifyUser(E_MSG_PARITY_SAVE_FAILED);
   }
 }
 
 void RootComponent::onStoppbitConfigTransmission(const char* data){
+
+  bool executeCommit = false;
+
   if(data[6] == '1'){
     // one stoppbit
     this->scStoppbits = STOPPBITS::ONE;
-
     EEPROM.write(EE_STOPPB_ADDR, 1);
-
-    if(EEPROM.commit()) {
-      this->notifyUser("Stoppbits successful saved.");
-    }
-    else {
-      this->notifyUser("Error saving stoppbits.");
-    }
+    executeCommit = true;
   }
   else if(data[6] == '2'){
     // two stoppbits
     this->scStoppbits = STOPPBITS::TWO;
-    
     EEPROM.write(EE_STOPPB_ADDR, 2);
-
-    if(EEPROM.commit()) {
-      this->notifyUser("Stoppbits successful saved.");
-    }
-    else {
-      this->notifyUser("Error saving stoppbits.");
-    }
+    executeCommit = true;
   }
+  else {
+    this->notifyUser(E_MSG_INVALID_DATA);
+  }
+
+  if(executeCommit){
+    EEPROM.commit()
+    ? this->notifyUser(I_MSG_STOPPBITS_SAVE_SUCCESS)
+    : this->notifyUser(E_MSG_STOPPBITS_SAVE_FAILED);
+  }
+}
+
+void RootComponent::onConfigurationRequest(){
+  String configurationString("_Ccrq");
+
+  // syntax
+  // '_Ccrq' + [br][br] + [db] + [pa] + [sb] + 'E'
+
+  auto baudIndex = this->baudIndexFromBaudValue(this->scBaudRate);
+  if(baudIndex < 10){
+    configurationString += '0';
+  }
+  configurationString += baudIndex;
+  configurationString += (uint8_t)this->scDatabits;
+  configurationString += (uint8_t)this->scParity;
+  configurationString += (uint8_t)this->scStoppbits;
+  configurationString += 'E';
+
+  ws.textAll(configurationString);
+}
+
+void RootComponent::onResetCommand(){
+    this->scBaudRate = 9600;
+    this->scDatabits = DATABITS::EIGHT;
+    this->scParity = PARITY::NONE;
+    this->scStoppbits = STOPPBITS::ONE;
+
+    EEPROM.write(EE_BAUD_ADDR, this->baudIndexFromBaudValue(this->scBaudRate));
+    EEPROM.write(EE_DATAB_ADDR, )
+
+    this->onConfigurationRequest();
 }
 
 uint8_t RootComponent::baudIndexFromBaudValue(long baudVal){
@@ -470,7 +480,7 @@ uint8_t RootComponent::baudIndexFromBaudValue(long baudVal){
     case 460800:
       return 13;
     default:
-      return 255;
+      return INVALID_BAUD_INDEX;
   }
 }
 
