@@ -66,8 +66,8 @@ class RootComponent
         // this is temp: this is only a placeholder for the dynamic values implemented later
 
         // network credentials work
-        const char* ssid = "CT Workstation AP";
-        const char* password = "30321065";
+        //const char* ssid = "CT Workstation AP";
+        //const char* password = "30321065";
 
         // network credentials home
         //const char* ssid = "Delker Zimmi Net";
@@ -79,6 +79,9 @@ class RootComponent
         AsyncWebSocket ws = AsyncWebSocket("/ws");
         
         SerialTransmissionHandler sHandler;
+
+        String network_ssid;
+        String network_password;
 
         bool isConnected = false;
         bool autoDetectEOT = true;

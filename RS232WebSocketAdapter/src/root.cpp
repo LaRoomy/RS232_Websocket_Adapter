@@ -16,6 +16,10 @@ void RootComponent::init(){
 
     EEPROM.begin(EE_PROM_SIZE);
 
+    //EEPROM.write(EE_WLAN_PASSWRD_LENGTH_ADDR, 0);
+    //EEPROM.write(EE_WLAN_SSID_LENGTH_ADDR, 0);
+    //EEPROM.commit();
+
     this->loadPersistentData();
     this->sHandler.setAutoDetectEndOfTransmission(this->autoDetectEOT);
 
@@ -26,61 +30,87 @@ void RootComponent::init(){
     pinMode(D5, OUTPUT);
     digitalWrite(D5, ledState);// hint: low == led on
   
-    // Connect to Wi-Fi
-    WiFi.begin(ssid, password);
-    
-    while (WiFi.status() != WL_CONNECTED) {
+    // Connect to Wi-Fi (if credentials are set)
+    if((this->network_ssid.length() > 0) && (this->network_password.length() > 0)){
+
+      Serial.println(this->network_ssid.c_str());
+      Serial.write('\n');
+      Serial.println(this->network_password.c_str());   // this is NOT CORRECT only 604585619!!!
+
+      WiFi.begin(
+        this->network_ssid.c_str(),
+        this->network_password.c_str()
+        );
+
+      while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.println("Connecting to WiFi..");
         ledState = !ledState;
         digitalWrite(D5, ledState);
-    }
+      }
+          
+      // Print ESP Local IP Address
+      Serial.println(WiFi.localIP());
+      // set led to on, to indicate connection status: connected
+      digitalWrite(LED_BUILTIN, LOW);
 
-    // Print ESP Local IP Address
-    Serial.println(WiFi.localIP());
-    // set led to on, to indicate connection status: connected
-    digitalWrite(LED_BUILTIN, LOW);
+      // activate multicast dns
+      if(!MDNS.begin("ncinterface")){
+        Serial.println("Error setting up MDNS!");
+      }
+      else {
+        Serial.println("MDNS started.");
+      }
 
-    if(!MDNS.begin("ncinterface")){
-      Serial.println("Error setting up MDNS!");
+      // init websocket
+      initWebSocket();
+
+      // Route for root / web page
+      this->server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+          request->send(LittleFS, "/webSocket_nc_Transmission.html", String(), false);
+      });
+
+      // Route for config / web page
+      this->server.on("/webSocket_nc_Configuration.html", HTTP_GET, [](AsyncWebServerRequest *request){
+          request->send(LittleFS, "/webSocket_nc_Configuration.html", String(), false);
+      });
+
+      // Route for javascript file
+      this->server.on("/exec_script.js", HTTP_GET, [](AsyncWebServerRequest *request){
+          request->send(LittleFS, "/exec_script.js", "text/javascript");
+      });
+
+      // Route for css file
+      this->server.on("/ex_styles.css", HTTP_GET, [](AsyncWebServerRequest *request){
+          request->send(LittleFS, "/ex_styles.css", "text/css");
+      });
+
+      // start server
+      this->server.begin();
+
+      // disable config-led for further usage
+      digitalWrite(D5, LOW);
+
+      // stop serial
+      Serial.flush();
+      Serial.end();
     }
     else {
-      Serial.println("MDNS started.");
-      //MDNS.addService("ws", "tcp", 80);
-      //MDNS.addService("http", "tcp", 80);
+      Serial.println("No network credentials. Only config mode available.");
+      // stop serial
+      Serial.flush();
+      Serial.end();
+
+      // set config mode
+      this->mode = DEVICEMODE::CONFIGMODE;
+
+      // indicate entering the config-mode by led
+      digitalWrite(D5, LOW);
+
+      // config and start serial interface
+      this->sHandler.config(this->scBaudRate, this->scDatabits, this->scParity, this->scStoppbits);
+      this->sHandler.startTerminal();
     }
-
-    initWebSocket();
-
-    // Route for root / web page
-    this->server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(LittleFS, "/webSocket_nc_Transmission.html", String(), false);
-    });
-
-    // Route for config / web page
-    this->server.on("/webSocket_nc_Configuration.html", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(LittleFS, "/webSocket_nc_Configuration.html", String(), false);
-    });
-
-    // Route for javascript file
-    this->server.on("/exec_script.js", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(LittleFS, "/exec_script.js", "text/javascript");
-    });
-
-    // Route for css file
-    this->server.on("/ex_styles.css", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send(LittleFS, "/ex_styles.css", "text/css");
-    });
-
-    // start server
-    this->server.begin();
-
-    // stop serial
-    Serial.flush();
-    Serial.end();
-
-    // disable config-led for further usage
-    digitalWrite(D5, LOW);
 }
 
 void RootComponent::onLoop(){
@@ -369,6 +399,8 @@ void RootComponent::leaveConfigMode(){
 
 void RootComponent::reConnect(){
 
+  //ESP.restart();
+
   // TODO!
 }
 
@@ -376,10 +408,12 @@ void RootComponent::loadPersistentData(){
 
   uint8_t val;
 
+  // baudrate
   val = EEPROM.read(EE_BAUD_ADDR);
   if(val != 255){
       this->scBaudRate = this->baudIndexToBaudValue(val);
   }
+  // databits
   val = EEPROM.read(EE_DATAB_ADDR);
   if(val != 255){
     if(val == 5)this->scDatabits = DATABITS::FIVE;
@@ -387,21 +421,47 @@ void RootComponent::loadPersistentData(){
     if(val == 7)this->scDatabits = DATABITS::SEVEN;
     if(val == 8)this->scDatabits = DATABITS::EIGHT;
   }
+  // parity
   val = EEPROM.read(EE_PARITY_ADDR);
   if(val != 255){
     if(val == 0)this->scParity = PARITY::NONE;
     if(val == 1)this->scParity = PARITY::EVEN;
     if(val == 2)this->scParity = PARITY::ODD;
   }
+  // stoppbits
   val = EEPROM.read(EE_STOPPB_ADDR);
   if(val != 255){
     if(val == 1)this->scStoppbits = STOPPBITS::ONE;
     if(val == 2)this->scStoppbits = STOPPBITS::TWO;
   }
+  // auto-detect eot
   val = EEPROM.read(EE_AD_EOT_ADDR);
   if(val != 255){
     if(val)this->autoDetectEOT = true;
     else this->autoDetectEOT = false;
+  }
+  // ssid
+  val = EEPROM.read(EE_WLAN_SSID_LENGTH_ADDR);
+  if((val < 255)&&(val > 0)){
+
+    Serial.printf("SSID length is: %i", val);
+    
+    for(unsigned int i = EE_WLAN_SSID_START_ADDR; i < ((unsigned int)(EE_WLAN_SSID_START_ADDR + val)); i++){
+      this->network_ssid += (char)EEPROM.read(i);
+    }
+
+    Serial.printf("SSID is: %s", this->network_ssid.c_str());
+
+  }
+  // password
+  val = EEPROM.read(EE_WLAN_PASSWRD_LENGTH_ADDR);
+  if((val < 255)&&(val > 0)){
+
+    Serial.printf("PASSWORD length is: %i", val);
+
+    for(unsigned int i = EE_WLAN_PASSWRD_START_ADDR; i < ((unsigned int)(EE_WLAN_PASSWRD_START_ADDR + val)); i++){
+      this->network_password += (char)EEPROM.read(i);
+    }
   }
 }
 
@@ -613,17 +673,47 @@ void RootComponent::onHandleTerminalCommunication(const String& data){
   if(data.length() > 0){
     if(this->inputMode == INPUTMODE::SSID_MODE){
       // save ssid
-
-      // notify user
-
+      if(data.length() > 255){
+        this->sHandler.terminal_sendData(E_MSG_MAXIMUM_CHAR_EXCEEDED);
+      }
+      else {
+        // set
+        this->network_ssid = data;
+        // save
+        for(unsigned int i = EE_WLAN_SSID_START_ADDR; i < (EE_WLAN_SSID_START_ADDR + data.length()); i++){
+          EEPROM.write(
+            i,
+            data.charAt(i - EE_WLAN_SSID_START_ADDR)
+            );
+        }
+        EEPROM.write(EE_WLAN_SSID_LENGTH_ADDR, (uint8_t)data.length());
+        EEPROM.commit()
+          ? this->sHandler.terminal_sendData(I_MSG_SSID_SAVE_SUCCESS)
+          : this->sHandler.terminal_sendData(E_MSG_SSID_SAVE_FAILED);
+      }
       // normalize
       this->inputMode = INPUTMODE::NONE;
     }
     else if(this->inputMode == INPUTMODE::PASSWORD_MODE){
       // save password
-
-      // notify user
-
+      if(data.length() > 255){
+        this->sHandler.terminal_sendData(E_MSG_MAXIMUM_CHAR_EXCEEDED);
+      }
+      else {
+        // set
+        this->network_password = data;
+        // save
+        for(unsigned int i = EE_WLAN_PASSWRD_START_ADDR; i < (EE_WLAN_PASSWRD_START_ADDR + data.length()); i++){
+            EEPROM.write(
+              i,
+              data.charAt(i - EE_WLAN_PASSWRD_START_ADDR)
+            );
+        }
+        EEPROM.write(EE_WLAN_PASSWRD_LENGTH_ADDR, (uint8_t)data.length());
+        EEPROM.commit()
+          ? this->sHandler.terminal_sendData(I_MSG_PASSWORD_SAVE_SUCCESS)
+          : this->sHandler.terminal_sendData(E_MSG_PASSWORD_SAVE_FAILED);
+      }
       // normalize
       this->inputMode = INPUTMODE::NONE;
     }
@@ -631,10 +721,23 @@ void RootComponent::onHandleTerminalCommunication(const String& data){
       if(data.charAt(0) == '?'){
         // help request
         this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_1);
+        delay(20);
         this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_2);
+        delay(20);
         this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_3);
       }
       else {
+
+    String temp("mode is: ");
+    temp += ((unsigned int)this->inputMode);
+    temp += " | data is: ";
+    temp += data;
+
+
+    // temp!!!!!!!!!
+    sHandler.terminal_sendData(temp);
+
+
         if(data == "exit"){
           // exit the config-mode? or do it only if the hardware switch is switched?
         }

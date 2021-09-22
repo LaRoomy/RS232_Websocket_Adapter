@@ -8,6 +8,8 @@
 #define     I_MSG_RECEIVE_OPERATION_COMPLETE    "Receive-Operation complete. Bytes received: "
 #define     I_MSG_CONFIG_RESET_SUCCESS      "Configuration successful set to default."
 #define     I_MSG_AUTODETECT_SAVE_SUCCESS   "Auto-detect successful saved."
+#define     I_MSG_SSID_SAVE_SUCCESS         "SSID successful saved."
+#define     I_MSG_PASSWORD_SAVE_SUCCESS     "Password successful saved."
 
 #define     E_MSG_INVALID_DATA              "Invalid data."
 #define     E_MSG_INVALID_BAUD_VALUE        "Error invalid baud value (invalid index)"
@@ -19,6 +21,9 @@
 #define     E_MSG_TRANSMISSION_ALREADY_IN_PROGRESS  "Transmission already in progress."
 #define     E_MSG_INVALID_SEND_IS_ACTIVE    "Invalid command. Cannot stop receiving: Send operation is active."
 #define     E_MSG_AUTODETECT_SAVE_FAILED    "Error occured while saving auto-detect"
+#define     E_MSG_SSID_SAVE_FAILED          "Error occured while saving SSID"
+#define     E_MSG_PASSWORD_SAVE_FAILED      "Error occured while saving Password"
+#define     E_MSG_MAXIMUM_CHAR_EXCEEDED     "Error: maximum character size exceeded"
 
 
 #define     TERM_INCOMING_SSID_CONFIG_REQUEST       "ssid"
