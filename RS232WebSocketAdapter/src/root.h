@@ -10,6 +10,7 @@
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <ESP8266mDNS.h>
 
 
 #include "serial.h"
@@ -19,6 +20,7 @@
 #define     EE_DATAB_ADDR               0x01
 #define     EE_PARITY_ADDR              0x02
 #define     EE_STOPPB_ADDR              0x03
+#define     EE_AD_EOT_ADDR              0x04
 // free (for future parameter)
 #define     EE_WLAN_SSID_LENGTH_ADDR    0x08
 #define     EE_WLAN_PASSWRD_LENGTH_ADDR 0x09
@@ -61,12 +63,12 @@ class RootComponent
         // this is temp: this is only a placeholder for the dynamic values implemented later
 
         // network credentials work
-        //const char* ssid = "CT Workstation AP";
-        //const char* password = "30321065";
+        const char* ssid = "CT Workstation AP";
+        const char* password = "30321065";
 
         // network credentials home
-        const char* ssid = "Delker Zimmi Net";
-        const char* password = "60458561901103846208";
+        //const char* ssid = "Delker Zimmi Net";
+        //const char* password = "60458561901103846208";
 
 
     private:
@@ -76,6 +78,7 @@ class RootComponent
         SerialTransmissionHandler sHandler;
 
         bool isConnected = false;
+        bool autoDetectEOT = true;
 
         // Default Serial configuration
         unsigned int scBaudRate = 115200;
@@ -107,6 +110,7 @@ class RootComponent
         void onDatabitConfigTransmission(const char* data);
         void onParityConfigTransmission(const char* data);
         void onStoppbitConfigTransmission(const char* data);
+        void onAutoDetectConfigTransmission(const char* data);
         void onReceiveCommand();
         void onStopReception();
         void onConfigurationRequest();

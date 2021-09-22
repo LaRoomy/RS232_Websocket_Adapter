@@ -65,8 +65,12 @@
                         <option value="2">2</option>
                     </select>
                 </div>
-
             </div>
+            <div id="autoDetectCheckboxContainer">
+                <input type="checkbox" id="autoDetectEOTCheckbox" onclick="onDEOTCheckboxClicked(this)">
+                <label for="autoDetectEOTCheckbox">Auto-detect end of transmission</label>
+            </div>
+
             <hr/>
             <div id="configPageButtonContainer" class="centerHClass">
                 <button id="backButton" class="gButtonClass" onclick="onConfigPageBackButtonClicked()">&#8249;  Back</button>

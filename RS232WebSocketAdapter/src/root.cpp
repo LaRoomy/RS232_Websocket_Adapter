@@ -7,25 +7,17 @@ void RootComponent::init(){
 
     uint8_t ledState = 1;
 
-    // TODO: load the configuration from eeprom !!!
-
-
     this->sHandler += this;// subscribe serial transmission callback
 
-    // temp !!!!!!!!!!
-    this->sHandler.setAutoDetectEndOfTransmission(true);
-
-    // TODO: make this as a setting!
-    this->
-
     // Serial port for debugging purposes
-    Serial.begin(115200);
+    Serial.begin(115200);// TEMP !!!!!!!!!!!!!
 
     LittleFS.begin();
 
     EEPROM.begin(EE_PROM_SIZE);
 
     this->loadPersistentData();
+    this->sHandler.setAutoDetectEndOfTransmission(this->autoDetectEOT);
 
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, HIGH);// hint: low == led on
@@ -48,6 +40,15 @@ void RootComponent::init(){
     Serial.println(WiFi.localIP());
     // set led to on, to indicate connection status
     digitalWrite(LED_BUILTIN, LOW);
+
+    if(!MDNS.begin("ncinterface")){
+      Serial.println("Error setting up MDNS!");
+    }
+    else {
+      Serial.println("MDNS started.");
+      MDNS.addService("ws", "tcp", 80);
+      MDNS.addService("http", "tcp", 80);
+    }
 
     initWebSocket();
 
@@ -256,6 +257,10 @@ void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
               // this is a stop-reception command
               this->onStopReception();
               break;
+            case 'A':
+              // this is a auto-detect config command
+              this->onAutoDetectConfigTransmission((char*)data);
+              break;
             default:
               break;
           }
@@ -325,6 +330,11 @@ void RootComponent::loadPersistentData(){
   if(val != 255){
     if(val == 1)this->scStoppbits = STOPPBITS::ONE;
     if(val == 2)this->scStoppbits = STOPPBITS::TWO;
+  }
+  val = EEPROM.read(EE_AD_EOT_ADDR);
+  if(val != 255){
+    if(val)this->autoDetectEOT = true;
+    else this->autoDetectEOT = false;
   }
 }
 
@@ -466,6 +476,21 @@ void RootComponent::onStoppbitConfigTransmission(const char* data){
   }
 }
 
+void RootComponent::onAutoDetectConfigTransmission(const char* data){
+
+  data[6] == '1'
+    ? EEPROM.write(EE_AD_EOT_ADDR, 1)
+    : EEPROM.write(EE_AD_EOT_ADDR, 0);
+  
+  data[6] == '1'
+    ? this->autoDetectEOT = true
+    : this->autoDetectEOT = false;
+  
+  EEPROM.commit()
+    ? this->notifyUser(I_MSG_AUTODETECT_SAVE_SUCCESS)
+    : this->notifyUser(E_MSG_AUTODETECT_SAVE_FAILED);
+}
+
 void RootComponent::onReceiveCommand(){
     this->sHandler.config(this->scBaudRate, this->scDatabits, this->scParity, this->scStoppbits);
     this->sHandler.startReceiving();
@@ -479,7 +504,7 @@ void RootComponent::onConfigurationRequest(){
   String configurationString("_Ccrq");
 
   // syntax
-  // '_Ccrq' + [br][br] + [db] + [pa] + [sb] + 'E'
+  // '_Ccrq' + [baudindex_10][baudindex_1] + [databits] + [parity] + [stoppbits] + [autodetect] + 'E'
 
   auto baudIndex = this->baudIndexFromBaudValue(this->scBaudRate);
   if(baudIndex < 10){
@@ -489,6 +514,7 @@ void RootComponent::onConfigurationRequest(){
   configurationString += (uint8_t)this->scDatabits;
   configurationString += (uint8_t)this->scParity;
   configurationString += (uint8_t)this->scStoppbits;
+  configurationString += this->autoDetectEOT ? 1 : 0;
   configurationString += 'E';
 
   this->ws.textAll(configurationString);

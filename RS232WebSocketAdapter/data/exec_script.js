@@ -175,6 +175,17 @@ function onConfigPageResetButtonClicked(){
     webSocket.send("_C000RE");
 }
 
+function onDEOTCheckboxClicked(cb){
+    if(cb.checked){
+        //notifyUser("checked");
+        webSocket.send("_C000A1E");
+    }
+    else {
+        //notifyUser("unchecked");
+        webSocket.send("_C000A0E");
+    }
+}
+
 function sendData(type, data, length){
 
     // 5 bytes fixed header length (default header for one segment)
@@ -301,7 +312,6 @@ function sendData(type, data, length){
 
             // send first package
             webSocket.send(dataPackageArray[0]);
-
         }
     }
     else{
@@ -421,6 +431,17 @@ function readConfigString(configString){
         str = "undef";
     }
     document.getElementById("stoppBitSelector").value = str;
+
+    // set auto-detect setting
+    str = "";
+    str += configString[9];
+    bIndex = parseInt(str);
+    if(bIndex == 1){
+        document.getElementById('autoDetectEOTCheckbox').checked = true;
+    }
+    else {
+        document.getElementById('autoDetectEOTCheckbox').checked = false;
+    }
 }
 
 function baudValueFromBaudIndex(index) {

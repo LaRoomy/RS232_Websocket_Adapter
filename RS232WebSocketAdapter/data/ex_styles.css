@@ -173,3 +173,21 @@ section hr {
     margin-top: 10px;
 }
 
+
+#autoDetectCheckboxContainer {
+    display: inline-block;
+    white-space: nowrap;
+    width: 90%;
+    margin-top: 20px;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%);
+    max-width: 600px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+}
+
+#autoDetectCheckboxContainer .label {
+    width: 200px;
+}
+
