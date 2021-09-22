@@ -4,7 +4,7 @@
 enum class DATABITS {FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8};
 enum class PARITY {NONE = 0, EVEN = 1, ODD = 2};
 enum class STOPPBITS {ONE = 1, TWO = 2};
-enum class TRANSMISSION_TYPE {NONE = 0, SEND = 1, RECEIVE = 2};
+enum class TRANSMISSION_TYPE {NONE = 0, SEND = 1, RECEIVE = 2, DUAL = 3};
 enum class TRANSMISSION_ERROR {
     TRANSMISSION_ALREADY_IN_PROGRESS = 1,
     UNKNOWN_ERROR = 2,
@@ -58,7 +58,12 @@ class SerialTransmissionHandler
 
         // put this to loop() to handle the serial transmisson async
         void processSerialTransmission();
+        void processTerminalTransmissions();
         void startReception();
+
+        void startTerminal();
+        void exitTerminal();
+        void terminal_sendData(String data);
 
 
         void reset();
@@ -83,5 +88,7 @@ class SerialTransmissionHandler
         Ticker timer = Ticker();
 
         static void onTimerTick();
+
+        void resetTransmissionParams();
 };
 

@@ -35,6 +35,9 @@
 
 #define     INVALID_BAUD_INDEX          99
 
+enum class DEVICEMODE {SOCKETMODE, CONFIGMODE};
+enum class INPUTMODE {NONE, SSID_MODE, PASSWORD_MODE};
+
 class RootComponent;
 
 RootComponent* getRootClass();
@@ -80,27 +83,28 @@ class RootComponent
         bool isConnected = false;
         bool autoDetectEOT = true;
 
+        DEVICEMODE mode = DEVICEMODE::SOCKETMODE;
+        INPUTMODE inputMode = INPUTMODE::NONE;
+
         // Default Serial configuration
         unsigned int scBaudRate = 115200;
         PARITY scParity = PARITY::NONE;
         DATABITS scDatabits = DATABITS::EIGHT;
         STOPPBITS scStoppbits = STOPPBITS::ONE;
 
-
         void initWebSocket() {
             this->ws.onEvent(RootComponent::onEvent);
             this->server.addHandler(&ws);
         }
 
+        void reConnect();
+        void enterConfigMode();
+        void leaveConfigMode();
+
         void handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
 
         static void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len);
-
-
-        /*String processor(const String& var){
-            return String();
-        }*/
 
         void loadPersistentData();
 
@@ -115,6 +119,7 @@ class RootComponent
         void onStopReception();
         void onConfigurationRequest();
         void onResetCommand();
+        void onHandleTerminalCommunication(const String& data);
 
         uint8_t baudIndexFromBaudValue(long baudVal);
         long baudIndexToBaudValue(uint8_t index);

@@ -156,6 +156,11 @@ void SerialTransmissionHandler::sendData(String data){
     }
 }
 
+void SerialTransmissionHandler::terminal_sendData(String data){
+    Serial.write(data.c_str());
+    Serial.flush();
+}
+
 void SerialTransmissionHandler::startReceiving(){
     if(this->currentTransmission != TRANSMISSION_TYPE::NONE){
         if(this->eventHandler != nullptr){
@@ -198,6 +203,24 @@ void SerialTransmissionHandler::stopReceiving(){
             }
         }
     }
+}
+
+void SerialTransmissionHandler::startTerminal(){
+    this->currentTransmission = TRANSMISSION_TYPE::DUAL;
+    this->transmissionIndex = 0;
+    this->transmissionData.clear();
+    this->timer.attach_ms(150, SerialTransmissionHandler::onTimerTick);
+
+    Serial.begin(this->baud, this->conf);
+}
+
+void SerialTransmissionHandler::exitTerminal(){
+    this->currentTransmission = TRANSMISSION_TYPE::NONE;
+    this->transmissionIndex = 0;
+    this->transmissionData.clear();
+    this->timer.detach();
+    Serial.flush();
+    Serial.end();
 }
 
 void SerialTransmissionHandler::setTransmissionData(String data, bool eraseHeader, unsigned int headerSize){
@@ -253,10 +276,6 @@ void SerialTransmissionHandler::processSerialTransmission(){
             this->transmissionData += c;
             transmissionIndex++;
             ticks = 0;
-
-            // detect finalization!
-
-
         }
         else {
             if(this->autoDetectEndOfTransmission){
@@ -268,6 +287,24 @@ void SerialTransmissionHandler::processSerialTransmission(){
             }
         }
     }    
+}
+
+void SerialTransmissionHandler::processTerminalTransmissions(){
+
+    if(Serial.available() > 0){
+        char c = (char)Serial.read();
+        this->transmissionData += c;
+        transmissionIndex++;
+        ticks = 0;
+    }
+    else {
+        if(ticks >= 2){
+            if(this->eventHandler != nullptr){
+                this->eventHandler->onReceptionComplete(this->transmissionData, transmissionIndex);
+            }
+            this->resetTransmissionParams();
+        }
+    }
 }
 
 
@@ -291,4 +328,10 @@ void SerialTransmissionHandler::terminate(){
 
 void SerialTransmissionHandler::onTimerTick(){
     ticks++;
+}
+
+void SerialTransmissionHandler::resetTransmissionParams(){
+    this->transmissionData.clear();
+    this->transmissionIndex = 0;
+    ticks = 0;
 }

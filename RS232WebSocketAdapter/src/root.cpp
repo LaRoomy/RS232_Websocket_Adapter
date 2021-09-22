@@ -38,7 +38,7 @@ void RootComponent::init(){
 
     // Print ESP Local IP Address
     Serial.println(WiFi.localIP());
-    // set led to on, to indicate connection status
+    // set led to on, to indicate connection status: connected
     digitalWrite(LED_BUILTIN, LOW);
 
     if(!MDNS.begin("ncinterface")){
@@ -46,8 +46,8 @@ void RootComponent::init(){
     }
     else {
       Serial.println("MDNS started.");
-      MDNS.addService("ws", "tcp", 80);
-      MDNS.addService("http", "tcp", 80);
+      //MDNS.addService("ws", "tcp", 80);
+      //MDNS.addService("http", "tcp", 80);
     }
 
     initWebSocket();
@@ -79,32 +79,47 @@ void RootComponent::init(){
     Serial.flush();
     Serial.end();
 
+    // disable config-led for further usage
     digitalWrite(D5, LOW);
 }
 
 void RootComponent::onLoop(){
 
-    ws.cleanupClients();
+    if(this->mode == DEVICEMODE::SOCKETMODE){
+      // websocket
+      ws.cleanupClients();
+      // mdns
+      MDNS.update();
+      // handle serial transmission
+      sHandler.processSerialTransmission();
 
-    // handle serial transmission
-    sHandler.processSerialTransmission();
+      // check system switch for config-mode
+      if(digitalRead(D2) == LOW){
+        // enter config-mode
+        this->enterConfigMode();
+      }
+      //else{
+      //    digitalWrite(D5, HIGH);
+      //}
 
-
-    if(digitalRead(D2) == LOW){
-        digitalWrite(D5, LOW);
-        //digitalWrite(LED_BUILTIN, LOW);
-    }
-    else{
-        digitalWrite(D5, HIGH);
-        //digitalWrite(LED_BUILTIN, HIGH);
-    }
-
-    // indicate connection status with system led
-    if(WiFi.isConnected()){
-      digitalWrite(LED_BUILTIN, LOW);
+      // indicate connection status with system led
+      if(WiFi.isConnected()){
+        digitalWrite(LED_BUILTIN, LOW);
+      }
+      else {
+        // wifi is disconnected -> try to re-connect
+        digitalWrite(LED_BUILTIN, HIGH);
+        this->reConnect();
+      }
     }
     else {
-      digitalWrite(LED_BUILTIN, HIGH);
+      // this is the config mode
+      this->sHandler.processTerminalTransmissions();
+      // check system switch to exit config-mode
+      if(digitalRead(D2) == HIGH){
+        // leave the config mode
+        this->leaveConfigMode();
+      }
     }
 }
 
@@ -115,18 +130,23 @@ void RootComponent::onSendComplete(unsigned int bytesTransferred){
 }
 
 void RootComponent::onReceptionComplete(const String& buffer, size_t size){
-    String message(I_MSG_RECEIVE_OPERATION_COMPLETE);
-    message += size;
-    this->notifyUser(message);
+    if(this->mode == DEVICEMODE::CONFIGMODE){
+      this->onHandleTerminalCommunication(buffer);
+    }
+    else {
+      // TEMP TEMP TEMP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      //this->enterConfigMode();
 
-    this->ws.textAll("_Csrt");
-
-    // TODO: send buffer to Web-page!
-
-    String setter("_Crrr");
-    setter += buffer;
-
-    this->ws.textAll(setter);
+      // notify user
+      String message(I_MSG_RECEIVE_OPERATION_COMPLETE);
+      message += size;
+      this->notifyUser(message);
+      // send buffer to websocket
+      this->ws.textAll("_Csrt");
+      String setter("_Crrr");
+      setter += buffer;
+      this->ws.textAll(setter);
+    }
 }
 
 void RootComponent::onReceptionStarted(){
@@ -303,6 +323,53 @@ void RootComponent::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client
         getRootClass()->notifyClients(String("WS_EVT_ERROR!"));
         break;
   }
+}
+
+void RootComponent::enterConfigMode(){
+
+  // set config mode
+  this->mode = DEVICEMODE::CONFIGMODE;
+
+  // indicate entering the config-mode by led
+  digitalWrite(D5, LOW);
+
+  // close websocket
+  this->ws.closeAll();
+  this->server.end();
+
+  // stop mdns
+  MDNS.end();
+
+  // disconnect
+  WiFi.disconnect();
+
+  // switch off wifi status led
+  digitalWrite(LED_BUILTIN, HIGH);
+
+  // config and start serial interface
+  this->sHandler.config(this->scBaudRate, this->scDatabits, this->scParity, this->scStoppbits);
+  this->sHandler.startTerminal();
+}
+
+void RootComponent::leaveConfigMode(){
+
+  // stop terminal transmission mode
+  this->sHandler.exitTerminal();
+
+  // set normal modes
+  this->mode = DEVICEMODE::SOCKETMODE;
+  this->inputMode = INPUTMODE::NONE;
+
+  // indicate leaving the config mode with led
+  digitalWrite(D5, HIGH);
+
+  // try to re-connect
+  this->reConnect();
+}
+
+void RootComponent::reConnect(){
+
+  // TODO!
 }
 
 void RootComponent::loadPersistentData(){
@@ -485,6 +552,8 @@ void RootComponent::onAutoDetectConfigTransmission(const char* data){
   data[6] == '1'
     ? this->autoDetectEOT = true
     : this->autoDetectEOT = false;
+
+  this->sHandler.setAutoDetectEndOfTransmission(this->autoDetectEOT);
   
   EEPROM.commit()
     ? this->notifyUser(I_MSG_AUTODETECT_SAVE_SUCCESS)
@@ -538,6 +607,48 @@ void RootComponent::onResetCommand(){
       this->notifyUser(E_MSG_CONFIG_RESET_ERROR);
     }
     this->onConfigurationRequest();
+}
+
+void RootComponent::onHandleTerminalCommunication(const String& data){
+  if(data.length() > 0){
+    if(this->inputMode == INPUTMODE::SSID_MODE){
+      // save ssid
+
+      // notify user
+
+      // normalize
+      this->inputMode = INPUTMODE::NONE;
+    }
+    else if(this->inputMode == INPUTMODE::PASSWORD_MODE){
+      // save password
+
+      // notify user
+
+      // normalize
+      this->inputMode = INPUTMODE::NONE;
+    }
+    else {
+      if(data.charAt(0) == '?'){
+        // help request
+        this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_1);
+        this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_2);
+        this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_3);
+      }
+      else {
+        if(data == "exit"){
+          // exit the config-mode? or do it only if the hardware switch is switched?
+        }
+        else if(data == TERM_INCOMING_SSID_CONFIG_REQUEST){
+          this->sHandler.terminal_sendData(TERM_OUTGOING_SSID_ENTER_PROMPT);
+          this->inputMode = INPUTMODE::SSID_MODE;
+        }
+        else if(data == TERM_INCOMING_PASSWORD_CONFIG_REQUEST){
+          this->sHandler.terminal_sendData(TERM_OUTGOING_PASSWORD_ENTER_PROMPT);
+          this->inputMode = INPUTMODE::PASSWORD_MODE;
+        }
+      }
+    }
+  }
 }
 
 uint8_t RootComponent::baudIndexFromBaudValue(long baudVal){
@@ -608,5 +719,4 @@ long RootComponent::baudIndexToBaudValue(uint8_t index){
     default:
       return 0;
   }
-
 }
