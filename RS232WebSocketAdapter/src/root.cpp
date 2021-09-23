@@ -36,25 +36,34 @@ void RootComponent::init(){
     pinMode(D5, OUTPUT);
     digitalWrite(D5, ledState);// hint: low == led on
   
-    // Connect to Wi-Fi (if credentials are set)
-    if((this->network_ssid.length() > 0) && (this->network_password.length() > 0)){
+    // Connect to Wi-Fi (if credentials are set and the config-switch is not on)
+    if((this->network_ssid.length() > 0) && (this->network_password.length() > 0) && (digitalRead(D2) == HIGH)){
 
 #ifdef  EVALUATION_MODE
       Serial.println(this->network_ssid.c_str());
 #endif
 
+      // connect
       WiFi.begin(
         this->network_ssid.c_str(),
         this->network_password.c_str()
         );
 
+      // wait for connection
       while (WiFi.status() != WL_CONNECTED) {
         delay(500);
+
 #ifdef  EVALUATION_MODE        
         Serial.println("Connecting to WiFi..");
 #endif
+
         ledState = !ledState;
         digitalWrite(D5, ledState);
+
+        // check config switch
+        if(digitalRead(D2) == LOW){
+          ESP.restart();
+        }
       }
           
 #ifdef  EVALUATION_MODE          
@@ -104,7 +113,7 @@ void RootComponent::init(){
       this->server.begin();
 
       // disable config-led for further usage
-      digitalWrite(D5, LOW);
+      digitalWrite(D5, HIGH);
 
 #ifdef  EVALUATION_MODE
       // stop serial
@@ -706,9 +715,7 @@ void RootComponent::onHandleTerminalCommunication(const String& data){
       if(data.charAt(0) == '?'){
         // help request
         this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_1);
-        delay(20);
         this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_2);
-        delay(20);
         this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_3);
       }
       else {
@@ -727,7 +734,7 @@ void RootComponent::onHandleTerminalCommunication(const String& data){
           this->inputMode = INPUTMODE::PASSWORD_MODE;
         }
         else {
-          this->notifyUser(E_MSG_UNKNOWN_COMMAND);
+          this->sHandler.terminal_sendData(E_MSG_UNKNOWN_COMMAND);
         }
       }
     }

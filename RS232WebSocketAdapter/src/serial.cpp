@@ -162,6 +162,8 @@ void SerialTransmissionHandler::sendData(String data){
 void SerialTransmissionHandler::terminal_sendData(String data){
     Serial.write(data.c_str());
     Serial.flush();
+
+    // ???
 }
 
 void SerialTransmissionHandler::startReceiving(){

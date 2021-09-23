@@ -204,21 +204,14 @@ function onOpenButtonClicked(){
 }
 
 function onSaveButtonClicked(){
-
-    var jsonBlob = new Blob([JSON.stringify("kiki")], { type: 'application/javascript;charset=utf-8' });
-    var link=window.URL.createObjectURL(jsonBlob);
-    window.location=link;
-    
-
-
     var text = document.getElementById("nc_content_text_area").value;
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', '123');
+    element.setAttribute('download', "data.txt");
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
-    document.body.removeChild(element);
+    document.body.removeChild(element);   
 }
 
 function sendData(type, data, length){
