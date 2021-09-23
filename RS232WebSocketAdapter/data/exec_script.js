@@ -108,6 +108,8 @@ function initControls(){
     document.getElementById('sendButton').addEventListener('click', onSendButtonClicked);
     document.getElementById('receiveButton').addEventListener('click', onReceiveButtonClicked);
     document.getElementById('configButton').addEventListener('click', onConfigButtonClicked);
+    document.getElementById('openButton').addEventListener('click', onOpenButtonClicked);
+    document.getElementById('saveButton').addEventListener('click', onSaveButtonClicked);
 }
 
 function onLoad(event){
@@ -184,6 +186,39 @@ function onDEOTCheckboxClicked(cb){
         //notifyUser("unchecked");
         webSocket.send("_C000A0E");
     }
+}
+
+function onOpenButtonClicked(){
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.onchange = e => {
+        var file = e.target.files[0];
+        var reader = new FileReader();
+        reader.readAsText(file, "UTF-8");
+        reader.onload = readerEvent => {
+            var content = readerEvent.target.result;
+            document.getElementById("nc_content_text_area").value = content;
+        }
+    }
+    input.click();
+}
+
+function onSaveButtonClicked(){
+
+    var jsonBlob = new Blob([JSON.stringify("kiki")], { type: 'application/javascript;charset=utf-8' });
+    var link=window.URL.createObjectURL(jsonBlob);
+    window.location=link;
+    
+
+
+    var text = document.getElementById("nc_content_text_area").value;
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', '123');
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
 }
 
 function sendData(type, data, length){

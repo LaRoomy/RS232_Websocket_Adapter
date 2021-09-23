@@ -12,6 +12,9 @@
 #include <ESPAsyncWebServer.h>
 #include <ESP8266mDNS.h>
 
+// this enables some functions which are only intended for testing purposes
+//#define     EVALUATION_MODE
+
 
 #include "serial.h"
 
@@ -25,11 +28,11 @@
 #define     EE_WLAN_SSID_LENGTH_ADDR    0x08
 #define     EE_WLAN_PASSWRD_LENGTH_ADDR 0x09
 #define     EE_WLAN_SSID_START_ADDR     0x0A
-#define     EE_WLAN_SSID_MAX_ADDR       0x1FE
-#define     EE_WLAN_PASSWRD_START_ADDR  0x1FF
-#define     EE_WLAN_PASSWRD_MAX_ADDR    0x3FF
+#define     EE_WLAN_SSID_MAX_ADDR       0x10A
+#define     EE_WLAN_PASSWRD_START_ADDR  0x10B
+#define     EE_WLAN_PASSWRD_MAX_ADDR    0x20B
 
-#define     EE_PROM_SIZE                 518
+#define     EE_PROM_SIZE                 524
 
 #include "stringTable.h"
 

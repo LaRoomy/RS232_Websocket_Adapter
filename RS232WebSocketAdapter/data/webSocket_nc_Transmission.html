@@ -13,9 +13,13 @@
     <body id="transmissionBody">
         <section>
             <span id="headerSpan">
-                <h2>RS232 Websocket Bridge</h2>
+                <h2>RS232 Transmission</h2>
             </span>
             <hr id="headerUnderline"/>
+            <div id="openSaveButtonDiv">
+                <button id="openButton" class="dButtonClass">Open</button>
+                <button id="saveButton" class="dButtonClass">Save</button>
+            </div>
             <span id="ncTextSpan">
                 <textarea id="nc_content_text_area" name="NCContentTextArea"> - place the nc content here - </textarea>
             </span>
@@ -31,6 +35,9 @@
             <span id="logSpan">
                 <textarea readonly id="log_text_area" name="logTextArea" onclick="onTextAreaClicked()"></textarea>
             </span>
+            <div id="projectCreditDiv">
+                <p>Created 2021 by Hans Philipp Zimmermann</p>
+            </div>
         </section>
     </body>
 <html>

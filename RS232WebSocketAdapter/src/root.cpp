@@ -1,26 +1,32 @@
 #include "root.h"
 
-
-
-
 void RootComponent::init(){
 
     uint8_t ledState = 1;
 
-    this->sHandler += this;// subscribe serial transmission callback
 
-    // Serial port for debugging purposes
-    Serial.begin(115200);// TEMP !!!!!!!!!!!!!
+#ifdef  EVALUATION_MODE
+    // Serial port for testing purposes
+    Serial.begin(115200);
+#endif
 
     LittleFS.begin();
-
     EEPROM.begin(EE_PROM_SIZE);
 
+    // necessary for first initialization!
+    //EEPROM.write(EE_BAUD_ADDR, 255);
+    //EEPROM.write(EE_DATAB_ADDR, 255);
+    //EEPROM.write(EE_PARITY_ADDR, 255);
+    //EEPROM.write(EE_STOPPB_ADDR, 255);
+    //EEPROM.write(EE_AD_EOT_ADDR, 255);
     //EEPROM.write(EE_WLAN_PASSWRD_LENGTH_ADDR, 0);
     //EEPROM.write(EE_WLAN_SSID_LENGTH_ADDR, 0);
     //EEPROM.commit();
 
     this->loadPersistentData();
+
+    // subscribe serial transmission callback
+    this->sHandler += this;
     this->sHandler.setAutoDetectEndOfTransmission(this->autoDetectEOT);
 
     pinMode(LED_BUILTIN, OUTPUT);
@@ -33,9 +39,9 @@ void RootComponent::init(){
     // Connect to Wi-Fi (if credentials are set)
     if((this->network_ssid.length() > 0) && (this->network_password.length() > 0)){
 
+#ifdef  EVALUATION_MODE
       Serial.println(this->network_ssid.c_str());
-      Serial.write('\n');
-      Serial.println(this->network_password.c_str());   // this is NOT CORRECT only 604585619!!!
+#endif
 
       WiFi.begin(
         this->network_ssid.c_str(),
@@ -44,24 +50,33 @@ void RootComponent::init(){
 
       while (WiFi.status() != WL_CONNECTED) {
         delay(500);
+#ifdef  EVALUATION_MODE        
         Serial.println("Connecting to WiFi..");
+#endif
         ledState = !ledState;
         digitalWrite(D5, ledState);
       }
           
+#ifdef  EVALUATION_MODE          
       // Print ESP Local IP Address
       Serial.println(WiFi.localIP());
+#endif
+
       // set led to on, to indicate connection status: connected
       digitalWrite(LED_BUILTIN, LOW);
 
       // activate multicast dns
+      MDNS.begin("ncinterface");
+
+#ifdef  EVALUATION_MODE        
       if(!MDNS.begin("ncinterface")){
         Serial.println("Error setting up MDNS!");
       }
       else {
         Serial.println("MDNS started.");
       }
-
+#endif
+      
       // init websocket
       initWebSocket();
 
@@ -91,15 +106,21 @@ void RootComponent::init(){
       // disable config-led for further usage
       digitalWrite(D5, LOW);
 
+#ifdef  EVALUATION_MODE
       // stop serial
       Serial.flush();
       Serial.end();
+#endif
+
     }
     else {
+
+#ifdef  EVALUATION_MODE      
       Serial.println("No network credentials. Only config mode available.");
       // stop serial
       Serial.flush();
       Serial.end();
+#endif      
 
       // set config mode
       this->mode = DEVICEMODE::CONFIGMODE;
@@ -128,9 +149,6 @@ void RootComponent::onLoop(){
         // enter config-mode
         this->enterConfigMode();
       }
-      //else{
-      //    digitalWrite(D5, HIGH);
-      //}
 
       // indicate connection status with system led
       if(WiFi.isConnected()){
@@ -164,9 +182,6 @@ void RootComponent::onReceptionComplete(const String& buffer, size_t size){
       this->onHandleTerminalCommunication(buffer);
     }
     else {
-      // TEMP TEMP TEMP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      //this->enterConfigMode();
-
       // notify user
       String message(I_MSG_RECEIVE_OPERATION_COMPLETE);
       message += size;
@@ -202,18 +217,6 @@ void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
   
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
         data[len] = 0;
-
-        // temp:
-      //String message("Package received. Size: ");
-      //message += len;
-      //message += " | Header: ";
-      //message += (char)data[0];
-      //message += (char)data[1];
-      //message += (char)data[2];
-      //message += (char)data[3];
-      //message += (char)data[4];
-      //this->ws.textAll(message);
-
       if(data[1] == 'D'){
         // this is a data-transmission
 
@@ -271,9 +274,7 @@ void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
         // this is a config/command transmission
 
         if(data[0] == '_'){ 
-
-          // TODO: handle all config messages!
-
+          // handle all config messages
           switch(data[5]){
             case 'B':
               // this is a baudrate config command
@@ -325,29 +326,20 @@ void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
 
 void RootComponent::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
              void *arg, uint8_t *data, size_t len) {
-
-        //getRootClass()->notifyClients(String("onEvent invoked!"));
-
-    // NOTE: this is a static method, do not use the 'this' pointer, use the global instance instead!
-
+    // NOTE: this is a static method, do not use the 'this' pointer, use a global instance
     switch (type) {
       case WS_EVT_CONNECT:
-        //getRootClass()->notifyClients(String("WS_EVT_CONNECT!"));
         getRootClass()->isConnected = true;
         getRootClass()->notifyClients("_Ccon");
-        //Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
         break;
       case WS_EVT_DISCONNECT:
-        //getRootClass()->notifyClients(String("WS_EVT_DISCONNECT!"));
         getRootClass()->isConnected = false;
-        //Serial.printf("WebSocket client #%u disconnected\n", client->id());
         break;
       case WS_EVT_DATA:
         getRootClass()->handleWebSocketMessage(arg, data, len);
         break;
       case WS_EVT_PONG:
         getRootClass()->notifyClients(String("WS_EVT_PONG!"));
-        //Serial.printf("Ping received from address: %s\n", client->remoteIP().toString().c_str());
         break;
       case WS_EVT_ERROR:
         getRootClass()->notifyClients(String("WS_EVT_ERROR!"));
@@ -383,25 +375,27 @@ void RootComponent::enterConfigMode(){
 
 void RootComponent::leaveConfigMode(){
 
-  // stop terminal transmission mode
-  this->sHandler.exitTerminal();
+  // only leave config mode if the credentials are set
+  if((this->network_ssid.length() > 0)&&(this->network_password.length() > 0)){
 
-  // set normal modes
-  this->mode = DEVICEMODE::SOCKETMODE;
-  this->inputMode = INPUTMODE::NONE;
+    // stop terminal transmission mode
+    this->sHandler.exitTerminal();
 
-  // indicate leaving the config mode with led
-  digitalWrite(D5, HIGH);
+    // set normal modes
+    this->mode = DEVICEMODE::SOCKETMODE;
+    this->inputMode = INPUTMODE::NONE;
 
-  // try to re-connect
-  this->reConnect();
+    // indicate leaving the config mode with led
+    digitalWrite(D5, HIGH);
+
+    // try to re-connect
+    this->reConnect();
+  }
 }
 
 void RootComponent::reConnect(){
-
-  //ESP.restart();
-
-  // TODO!
+  // that's the easiest way, feel free to do it without a restart
+  ESP.restart();
 }
 
 void RootComponent::loadPersistentData(){
@@ -443,22 +437,13 @@ void RootComponent::loadPersistentData(){
   // ssid
   val = EEPROM.read(EE_WLAN_SSID_LENGTH_ADDR);
   if((val < 255)&&(val > 0)){
-
-    Serial.printf("SSID length is: %i", val);
-    
     for(unsigned int i = EE_WLAN_SSID_START_ADDR; i < ((unsigned int)(EE_WLAN_SSID_START_ADDR + val)); i++){
       this->network_ssid += (char)EEPROM.read(i);
     }
-
-    Serial.printf("SSID is: %s", this->network_ssid.c_str());
-
   }
   // password
   val = EEPROM.read(EE_WLAN_PASSWRD_LENGTH_ADDR);
   if((val < 255)&&(val > 0)){
-
-    Serial.printf("PASSWORD length is: %i", val);
-
     for(unsigned int i = EE_WLAN_PASSWRD_START_ADDR; i < ((unsigned int)(EE_WLAN_PASSWRD_START_ADDR + val)); i++){
       this->network_password += (char)EEPROM.read(i);
     }
@@ -727,19 +712,11 @@ void RootComponent::onHandleTerminalCommunication(const String& data){
         this->sHandler.terminal_sendData(TERM_OUTGOING_HELP_RESPONSE_3);
       }
       else {
-
-    String temp("mode is: ");
-    temp += ((unsigned int)this->inputMode);
-    temp += " | data is: ";
-    temp += data;
-
-
-    // temp!!!!!!!!!
-    sHandler.terminal_sendData(temp);
-
-
         if(data == "exit"){
           // exit the config-mode? or do it only if the hardware switch is switched?
+        }
+        else if(data == "info"){
+          // TODO!
         }
         else if(data == TERM_INCOMING_SSID_CONFIG_REQUEST){
           this->sHandler.terminal_sendData(TERM_OUTGOING_SSID_ENTER_PROMPT);
@@ -748,6 +725,9 @@ void RootComponent::onHandleTerminalCommunication(const String& data){
         else if(data == TERM_INCOMING_PASSWORD_CONFIG_REQUEST){
           this->sHandler.terminal_sendData(TERM_OUTGOING_PASSWORD_ENTER_PROMPT);
           this->inputMode = INPUTMODE::PASSWORD_MODE;
+        }
+        else {
+          this->notifyUser(E_MSG_UNKNOWN_COMMAND);
         }
       }
     }

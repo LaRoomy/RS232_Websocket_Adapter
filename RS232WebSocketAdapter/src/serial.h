@@ -19,7 +19,7 @@ class ISerialTransmissionEvents {
         virtual void onError(TRANSMISSION_ERROR error) = 0;
 };
 
-static unsigned int ticks = 0;
+//unsigned int getTicks
 
 class SerialTransmissionHandler
 {
@@ -86,6 +86,7 @@ class SerialTransmissionHandler
         ISerialTransmissionEvents* eventHandler = nullptr;
         bool autoDetectEndOfTransmission = false;
         Ticker timer = Ticker();
+
 
         static void onTimerTick();
 

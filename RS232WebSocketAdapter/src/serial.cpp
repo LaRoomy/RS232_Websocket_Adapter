@@ -1,6 +1,9 @@
 #include "serial.h"
 #include <limits.h>
 
+unsigned int ticks = 0;
+
+
 void SerialTransmissionHandler::config(unsigned long baudrate,DATABITS db, PARITY p, STOPPBITS sb){
 
     this->baud = baudrate;

@@ -24,6 +24,7 @@
 #define     E_MSG_SSID_SAVE_FAILED          "Error occured while saving SSID"
 #define     E_MSG_PASSWORD_SAVE_FAILED      "Error occured while saving Password"
 #define     E_MSG_MAXIMUM_CHAR_EXCEEDED     "Error: maximum character size exceeded"
+#define     E_MSG_UNKNOWN_COMMAND           "Error: unknown command"
 
 
 #define     TERM_INCOMING_SSID_CONFIG_REQUEST       "ssid"
