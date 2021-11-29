@@ -125,8 +125,10 @@ class RootComponent
         void onStopReception();
         void onConfigurationRequest();
         void onResetCommand();
-        void onHandleTerminalCommunication(const String& data);
+        void onHandleTerminalCommunication(String data);
 
         uint8_t baudIndexFromBaudValue(long baudVal);
         long baudIndexToBaudValue(uint8_t index);
+
+        void removeLineEndCharacter(String& data);
 };

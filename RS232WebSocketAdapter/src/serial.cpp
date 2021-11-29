@@ -140,6 +140,8 @@ void SerialTransmissionHandler::sendData(){
         this->transmissionIndex = 0;
         this->currentTransmission = TRANSMISSION_TYPE::SEND;
 
+        digitalWrite(HANDSHAKE_SIGNAL_PIN, LOW);
+
         Serial.begin(this->baud, this->conf);
     }
 }
@@ -154,6 +156,8 @@ void SerialTransmissionHandler::sendData(String data){
         this->transmissionData = data;
         this->transmissionIndex = 0;
         this->currentTransmission = TRANSMISSION_TYPE::SEND;
+
+        digitalWrite(HANDSHAKE_SIGNAL_PIN, LOW);
 
         Serial.begin(this->baud, this->conf);
     }
@@ -177,6 +181,8 @@ void SerialTransmissionHandler::startReceiving(){
         this->transmissionData.clear();
         this->currentTransmission = TRANSMISSION_TYPE::RECEIVE;
 
+        digitalWrite(HANDSHAKE_SIGNAL_PIN, LOW);
+
         Serial.begin(this->baud, this->conf);
 
         if(this->eventHandler != nullptr){
@@ -191,6 +197,7 @@ void SerialTransmissionHandler::stopReceiving(){
     if(this->currentTransmission == TRANSMISSION_TYPE::RECEIVE){
 
         Serial.end();
+        digitalWrite(HANDSHAKE_SIGNAL_PIN, HIGH);
         this->timer.detach();
         ticks = 0;
     
@@ -266,6 +273,8 @@ void SerialTransmissionHandler::processSerialTransmission(){
             Serial.flush();
             Serial.end();
 
+            digitalWrite(HANDSHAKE_SIGNAL_PIN, HIGH);
+
             if(this->eventHandler != nullptr){
                 this->eventHandler->onSendComplete(transmissionIndex);
             }
@@ -320,12 +329,14 @@ void SerialTransmissionHandler::reset(){
     }
     this->transmissionIndex = 0;
     this->transmissionData.clear();
+    digitalWrite(HANDSHAKE_SIGNAL_PIN, HIGH);
 }
 
 void SerialTransmissionHandler::terminate(){
     if(this->currentTransmission != TRANSMISSION_TYPE::NONE){
         Serial.end();
     }
+    digitalWrite(HANDSHAKE_SIGNAL_PIN, HIGH);
     this->transmissionIndex = 0;
     this->transmissionData.clear();
     this->currentTransmission = TRANSMISSION_TYPE::NONE;
@@ -336,6 +347,7 @@ void SerialTransmissionHandler::onTimerTick(){
 }
 
 void SerialTransmissionHandler::resetTransmissionParams(){
+    digitalWrite(HANDSHAKE_SIGNAL_PIN, HIGH);
     this->transmissionData.clear();
     this->transmissionIndex = 0;
     ticks = 0;

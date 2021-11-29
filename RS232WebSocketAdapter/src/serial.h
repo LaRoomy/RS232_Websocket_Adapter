@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <Ticker.h>
 
+#define     HANDSHAKE_SIGNAL_PIN    D6
+
 enum class DATABITS {FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8};
 enum class PARITY {NONE = 0, EVEN = 1, ODD = 2};
 enum class STOPPBITS {ONE = 1, TWO = 2};
@@ -59,7 +61,7 @@ class SerialTransmissionHandler
         // put this to loop() to handle the serial transmisson async
         void processSerialTransmission();
         void processTerminalTransmissions();
-        void startReception();
+        //void startReception();
 
         void startTerminal();
         void exitTerminal();

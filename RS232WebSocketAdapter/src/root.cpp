@@ -34,7 +34,9 @@ void RootComponent::init(){
 
     pinMode(D2, INPUT);
     pinMode(D5, OUTPUT);
+    pinMode(HANDSHAKE_SIGNAL_PIN, OUTPUT);
     digitalWrite(D5, ledState);// hint: low == led on
+    digitalWrite(HANDSHAKE_SIGNAL_PIN, HIGH);
   
     // Connect to Wi-Fi (if credentials are set and the config-switch is not on)
     if((this->network_ssid.length() > 0) && (this->network_password.length() > 0) && (digitalRead(D2) == HIGH)){
@@ -663,8 +665,11 @@ void RootComponent::onResetCommand(){
     this->onConfigurationRequest();
 }
 
-void RootComponent::onHandleTerminalCommunication(const String& data){
+void RootComponent::onHandleTerminalCommunication(String data){
   if(data.length() > 0){
+
+    this->removeLineEndCharacter(data);
+
     if(this->inputMode == INPUTMODE::SSID_MODE){
       // save ssid
       if(data.length() > 255){
@@ -809,4 +814,13 @@ long RootComponent::baudIndexToBaudValue(uint8_t index){
     default:
       return 0;
   }
+}
+
+void RootComponent::removeLineEndCharacter(String& data){
+
+    for(unsigned int i = 0; i <= data.length(); i++){
+      if((data.charAt(i) == '\r')||(data.charAt(i) == '\n')){
+        data.remove(i);
+      }
+    }
 }
