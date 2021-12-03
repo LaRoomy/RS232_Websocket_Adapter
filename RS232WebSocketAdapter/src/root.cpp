@@ -140,7 +140,8 @@ void RootComponent::init(){
       digitalWrite(D5, LOW);
 
       // config and start serial interface
-      this->sHandler.config(this->scBaudRate, this->scDatabits, this->scParity, this->scStoppbits);
+      //this->sHandler.config(this->scBaudRate, this->scDatabits, this->scParity, this->scStoppbits);
+      this->sHandler.config(9600, DATABITS::EIGHT, PARITY::NONE, STOPPBITS::ONE);
       this->sHandler.startTerminal();
     }
 }
@@ -380,7 +381,7 @@ void RootComponent::enterConfigMode(){
   digitalWrite(LED_BUILTIN, HIGH);
 
   // config and start serial interface
-  this->sHandler.config(this->scBaudRate, this->scDatabits, this->scParity, this->scStoppbits);
+  this->sHandler.config(9600, DATABITS::EIGHT, PARITY::NONE, STOPPBITS::ONE);
   this->sHandler.startTerminal();
 }
 
