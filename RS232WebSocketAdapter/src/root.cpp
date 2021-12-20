@@ -37,6 +37,10 @@ void RootComponent::init(){
     pinMode(HANDSHAKE_SIGNAL_PIN, OUTPUT);
     digitalWrite(D5, ledState);// hint: low == led on
     digitalWrite(HANDSHAKE_SIGNAL_PIN, HIGH);
+
+    // tx config
+    pinMode(D10, OUTPUT);
+    digitalWrite(D10, HIGH);
   
     // Connect to Wi-Fi (if credentials are set and the config-switch is not on)
     if((this->network_ssid.length() > 0) && (this->network_password.length() > 0) && (digitalRead(D2) == HIGH)){
