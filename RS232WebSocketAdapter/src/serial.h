@@ -21,8 +21,6 @@ class ISerialTransmissionEvents {
         virtual void onError(TRANSMISSION_ERROR error) = 0;
 };
 
-//unsigned int getTicks
-
 class SerialTransmissionHandler
 {
     public:
@@ -61,7 +59,6 @@ class SerialTransmissionHandler
         // put this to loop() to handle the serial transmisson async
         void processSerialTransmission();
         void processTerminalTransmissions();
-        //void startReception();
 
         void startTerminal();
         void exitTerminal();

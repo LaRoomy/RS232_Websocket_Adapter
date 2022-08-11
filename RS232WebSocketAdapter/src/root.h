@@ -1,9 +1,5 @@
 #include <Arduino.h>
 
-/*********
- Author: Hans Philipp Zimmermann
-*********/
-
 // Import required libraries
 #include <FS.h>
 #include <LittleFS.h>
@@ -12,9 +8,11 @@
 #include <ESPAsyncWebServer.h>
 #include <ESP8266mDNS.h>
 
-// this enables some functions which are only intended for testing purposes
+// if set, this enables some functions which are only intended for testing purposes
 //#define     EVALUATION_MODE
 
+// if set, this initializes the eeprom persistent data, only intended for initial startup of the device
+//#define     INITIAL_MODE 
 
 #include "serial.h"
 
@@ -60,22 +58,9 @@ class RootComponent
         void onReceptionStarted();
         void onError(TRANSMISSION_ERROR error);
 
-        //void handleWebSocketMessage(void *arg, uint8_t *data, size_t len);
-
         void notifyClients(String msg){
             this->ws.textAll(msg);
         }
-
-        // this is temp: this is only a placeholder for the dynamic values implemented later
-
-        // network credentials work
-        //const char* ssid = "CT Workstation AP";
-        //const char* password = "30321065";
-
-        // network credentials home
-        //const char* ssid = "Delker Zimmi Net";
-        //const char* password = "60458561901103846208";
-
 
     private:
         AsyncWebServer server = AsyncWebServer(80);

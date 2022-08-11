@@ -1,5 +1,3 @@
-//alert("This alert box was called with the onload event");
-
 
 var gateway = `ws://${window.location.hostname}/ws`;
 var webSocket;
@@ -65,11 +63,6 @@ function onWebSocketMessage(event){
         else if((event.data[2] == 'c')&&(event.data[3] == 'r')&&(event.data[4] == 'q')){
             // configuration request response
             readConfigString(event.data);
-
-
-            // temp:
-            //notifyUser(event.data);
-
         }
         else if((event.data[2] == 's')&&(event.data[3] == 'r')&&(event.data[4] == 's')){
             // reception started message
@@ -91,7 +84,6 @@ function onWebSocketMessage(event){
                 outString += event.data[i];
             }
             
-            // temp?
             document.getElementById('nc_content_text_area').value = outString;
         }
     }
@@ -164,12 +156,8 @@ function onConfigButtonClicked(){
 }
 
 function onConfigPageBackButtonClicked(){
-
     // in release-mode
     location.href = "/";
-
-    // for testing purposes!
-    //location.href = "webSocket_nc_Transmission.html";
 }
 
 function onConfigPageResetButtonClicked(){
@@ -179,11 +167,9 @@ function onConfigPageResetButtonClicked(){
 
 function onDEOTCheckboxClicked(cb){
     if(cb.checked){
-        //notifyUser("checked");
         webSocket.send("_C000A1E");
     }
     else {
-        //notifyUser("unchecked");
         webSocket.send("_C000A0E");
     }
 }
@@ -235,8 +221,6 @@ function sendData(type, data, length){
             if(lengthCounter >= 500){
                 // first build a simple header for the transmission
                 var segmentHeaderString = "";
-
-                // what if this is the last package???
 
                 if(segmentIndex == 0){
                     // this is the first package, apply the appropriate header entry
@@ -291,7 +275,6 @@ function sendData(type, data, length){
                         segmentHeaderString += segmentIndex;
                     }
                 }                
-                //webSocket.send(segmentHeaderString + dataToSend);
                 dataPackageArray[segmentIndex] = (segmentHeaderString + dataToSend);
                                 
                 dataToSend = "";
@@ -335,7 +318,6 @@ function sendData(type, data, length){
                     sheaderStr += segmentIndex;
                 }
             }
-            //webSocket.send(sheaderStr + dataToSend);
             dataPackageArray[segmentIndex] = (sheaderStr + dataToSend);
 
             // send first package

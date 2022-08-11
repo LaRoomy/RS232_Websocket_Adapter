@@ -4,7 +4,6 @@ void RootComponent::init(){
 
     uint8_t ledState = 1;
 
-
 #ifdef  EVALUATION_MODE
     // Serial port for testing purposes
     Serial.begin(115200);
@@ -13,15 +12,17 @@ void RootComponent::init(){
     LittleFS.begin();
     EEPROM.begin(EE_PROM_SIZE);
 
+#ifdef INITIAL_MODE
     // necessary for first initialization!
-    //EEPROM.write(EE_BAUD_ADDR, 255);
-    //EEPROM.write(EE_DATAB_ADDR, 255);
-    //EEPROM.write(EE_PARITY_ADDR, 255);
-    //EEPROM.write(EE_STOPPB_ADDR, 255);
-    //EEPROM.write(EE_AD_EOT_ADDR, 255);
-    //EEPROM.write(EE_WLAN_PASSWRD_LENGTH_ADDR, 0);
-    //EEPROM.write(EE_WLAN_SSID_LENGTH_ADDR, 0);
-    //EEPROM.commit();
+    EEPROM.write(EE_BAUD_ADDR, 255);
+    EEPROM.write(EE_DATAB_ADDR, 255);
+    EEPROM.write(EE_PARITY_ADDR, 255);
+    EEPROM.write(EE_STOPPB_ADDR, 255);
+    EEPROM.write(EE_AD_EOT_ADDR, 255);
+    EEPROM.write(EE_WLAN_PASSWRD_LENGTH_ADDR, 0);
+    EEPROM.write(EE_WLAN_SSID_LENGTH_ADDR, 0);
+    EEPROM.commit();
+#endif
 
     this->loadPersistentData();
 
@@ -42,7 +43,7 @@ void RootComponent::init(){
     pinMode(D10, OUTPUT);
     digitalWrite(D10, HIGH);
   
-    // Connect to Wi-Fi (if credentials are set and the config-switch is not on)
+    // Connect to Wi-Fi (if credentials are set and the config-switch is NOT on)
     if((this->network_ssid.length() > 0) && (this->network_password.length() > 0) && (digitalRead(D2) == HIGH)){
 
 #ifdef  EVALUATION_MODE
@@ -255,10 +256,11 @@ void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
             sHandler.setTransmissionData(String((char*)data), true, 5);
             this->notifyClients("_Cnxt1E");// send next package command
         }
-        else if(data[0] == 'x'){
+        else if(data[0] == 'x'){            
             // this is a multi-package-transmission
             // so we must append the data to preliminary transmissions
             this->sHandler.addTransmissionData(String((char*)data), true, 5);
+
             // get package index
             String pIndex;
             if(data[2] != '0'){
@@ -340,8 +342,7 @@ void RootComponent::handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
   }
 }
 
-void RootComponent::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
-             void *arg, uint8_t *data, size_t len) {
+void RootComponent::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
     // NOTE: this is a static method, do not use the 'this' pointer, use a global instance
     switch (type) {
       case WS_EVT_CONNECT:

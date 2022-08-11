@@ -73,11 +73,6 @@ section hr {
     display: inline-block;
 }
 
-/*
-#sendButton {
-    margin-right: 30px;
-}*/
-
 #receiveButton {
     margin-left: 20px;
 }
@@ -141,11 +136,6 @@ section hr {
     margin-bottom: 10px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
-
-/*.headerLineTextCenterClass {
-    text-align: center;
-}*/
 
 #configContainer {
     margin-top: 20px;

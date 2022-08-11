@@ -137,9 +137,20 @@ void SerialTransmissionHandler::sendData(){
         }
     }
     else {
+        // make sure to add a linefeed delimiter on the end of the buffer
+        //      -> otherwise the last line will not be recognized
+        this->transmissionData += "\n\0";
+
         this->transmissionIndex = 0;
         this->currentTransmission = TRANSMISSION_TYPE::SEND;
 
+        /*
+            Here the GPIO12 pin is set to low level, this pin is connceted to the T2_IN pin of the
+            Max3232 IC. Setting this pin to low has the inverting effect on the output pin T2_OUT of the Max3232 which is
+            set high on RS232 level. The output pin is connected to the IN-Pinheader row of the jumper area, so setting a
+            jumper-bridge from the IN header to the single signal pin sets this hardware handshake pin to high level before
+            the sending process is started.
+        */
         digitalWrite(HANDSHAKE_SIGNAL_PIN, LOW);
 
         Serial.begin(this->baud, this->conf);
@@ -154,9 +165,21 @@ void SerialTransmissionHandler::sendData(String data){
     }
     else {
         this->transmissionData = data;
+
+        // make sure to add a linefeed delimiter on the end of the buffer
+        //      -> otherwise the last line will not be recognized
+        this->transmissionData += "\n\0";
+
         this->transmissionIndex = 0;
         this->currentTransmission = TRANSMISSION_TYPE::SEND;
 
+        /*
+            Here the GPIO12 pin is set to low level, this pin is connceted to the T2_IN pin of the
+            Max3232 IC. Setting this pin to low has the inverting effect on the output pin T2_OUT of the Max3232 which is
+            set high on RS232 level. The output pin is connected to the IN-Pinheader row of the jumper area, so setting a
+            jumper-bridge from the IN header to the single signal pin sets this hardware handshake pin to high level before
+            the sending process is started.
+        */
         digitalWrite(HANDSHAKE_SIGNAL_PIN, LOW);
 
         Serial.begin(this->baud, this->conf);
@@ -166,8 +189,6 @@ void SerialTransmissionHandler::sendData(String data){
 void SerialTransmissionHandler::terminal_sendData(String data){
     Serial.write(data.c_str());
     Serial.flush();
-
-    // ???
 }
 
 void SerialTransmissionHandler::startReceiving(){
@@ -181,6 +202,13 @@ void SerialTransmissionHandler::startReceiving(){
         this->transmissionData.clear();
         this->currentTransmission = TRANSMISSION_TYPE::RECEIVE;
 
+        /*
+            Here the GPIO12 pin is set to low level, this pin is connceted to the T2_IN pin of the
+            Max3232 IC. Setting this pin to low has the inverting effect on the output pin T2_OUT of the Max3232 which is
+            set high on RS232 level. The output pin is connected to the IN-Pinheader row of the jumper area, so setting a
+            jumper-bridge from the IN header to the single signal pin sets this hardware handshake pin to high level before
+            the receiving process is started.
+        */
         digitalWrite(HANDSHAKE_SIGNAL_PIN, LOW);
 
         Serial.begin(this->baud, this->conf);
@@ -197,7 +225,10 @@ void SerialTransmissionHandler::stopReceiving(){
     if(this->currentTransmission == TRANSMISSION_TYPE::RECEIVE){
 
         Serial.end();
+
+        // reset the hardware handshake pin level (high means low on the rs232 output level)
         digitalWrite(HANDSHAKE_SIGNAL_PIN, HIGH);
+
         this->timer.detach();
         ticks = 0;
     
@@ -273,6 +304,7 @@ void SerialTransmissionHandler::processSerialTransmission(){
             Serial.flush();
             Serial.end();
 
+            // reset the hardware handshake pin level (high means low on the rs232 output level)
             digitalWrite(HANDSHAKE_SIGNAL_PIN, HIGH);
 
             if(this->eventHandler != nullptr){
