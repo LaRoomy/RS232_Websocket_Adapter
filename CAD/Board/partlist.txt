@@ -1,0 +1,47 @@
+Partlist
+
+Exported from RS232_Websocket.brd at 27.11.2021 17:50:55
+
+Assembly variant: 
+
+Part     Value          Package        Library 
+
+C2       10µF           C1206          resistor
+C3       100nF          C0603          resistor 
+C4       47nF           C0603          resistor 
+C5       4.7µF          C1206          resistor 
+C6       4.7µF          C1206          resistor
+C7       10µF           C1206          resistor 
+C8       100nF          C0603          resistor 
+C9       100nF          C0603          resistor 
+C10      100nF          C0603          resistor 
+C11      100nF          C0603          resistor 
+C12      100nF          C0603          resistor  
+C19      100nF          C0603          resistor   
+IC1      ESP8266MOD_AI  ESP8266MOD     ESP8266MOD_AiThinker
+ICM      MAX3232SO16    SO16           maxim-7a
+JP1      USB-C_BREAKOUT USB-C_BREAKOUT USB-C Breakout Ada
+JP2      Backup Supply  1X02           pinhead 
+JP3                     2X06           pinhead
+JP4                     2X06           pinhead 
+L1       L-EU-SMD       R1210          resistor 
+LED1                    LED3MM         led   
+LED2                    LED3MM         led  
+R1       10k            R0603          resistor 
+R2       10k            R0603          resistor  
+R3       10k            R0603          resistor 
+R4       10k            R0603          resistor  
+R5       100k           R0603          resistor 
+R6       10k            R0603          resistor  
+R7       10k            R0603          resistor  
+R8       10k            R0603          resistor 
+R9       220R           R0603          resistor 
+R10      220R           R0603          resistor 
+R11      10k            R0603          resistor 
+R12      10k            R0603          resistor 
+S2                      B3F-10XX       switch-omron 
+S3       3POS_SWITCH    2POS_SWITCH    3-Step-Switch
+S4       3POS_SWITCH    2POS_SWITCH    3-Step-Switch 
+S5       3X2_SWITCH     3X2_SWITCH     Switches 
+U1       TSR_1-2433     TSR-1          _traco_tsr-1 
+X1                      M09HP          con-subd  
