@@ -147,8 +147,8 @@ void SerialTransmissionHandler::sendData(){
         /*
             Here the GPIO12 pin is set to low level, this pin is connceted to the T2_IN pin of the
             Max3232 IC. Setting this pin to low has the inverting effect on the output pin T2_OUT of the Max3232 which is
-            set high on RS232 level. The output pin is connected to the IN-Pinheader row of the jumper area, so setting a
-            jumper-bridge from the IN header to the single signal pin sets this hardware handshake pin to high level before
+            set high on RS232 level. The output pin is connected to the OUT-Pinheader row of the jumper area, so setting a
+            jumper-bridge from the OUT header to the single signal pin sets this hardware handshake pin to high level before
             the sending process is started.
         */
         digitalWrite(HANDSHAKE_SIGNAL_PIN, LOW);
@@ -176,8 +176,8 @@ void SerialTransmissionHandler::sendData(String data){
         /*
             Here the GPIO12 pin is set to low level, this pin is connceted to the T2_IN pin of the
             Max3232 IC. Setting this pin to low has the inverting effect on the output pin T2_OUT of the Max3232 which is
-            set high on RS232 level. The output pin is connected to the IN-Pinheader row of the jumper area, so setting a
-            jumper-bridge from the IN header to the single signal pin sets this hardware handshake pin to high level before
+            set high on RS232 level. The output pin is connected to the OUT-Pinheader row of the jumper area, so setting a
+            jumper-bridge from the OUT header to the single signal pin sets this hardware handshake pin to high level before
             the sending process is started.
         */
         digitalWrite(HANDSHAKE_SIGNAL_PIN, LOW);
@@ -205,8 +205,8 @@ void SerialTransmissionHandler::startReceiving(){
         /*
             Here the GPIO12 pin is set to low level, this pin is connceted to the T2_IN pin of the
             Max3232 IC. Setting this pin to low has the inverting effect on the output pin T2_OUT of the Max3232 which is
-            set high on RS232 level. The output pin is connected to the IN-Pinheader row of the jumper area, so setting a
-            jumper-bridge from the IN header to the single signal pin sets this hardware handshake pin to high level before
+            set high on RS232 level. The output pin is connected to the OUT-Pinheader row of the jumper area, so setting a
+            jumper-bridge from the OUT header to the single signal pin sets this hardware handshake pin to high level before
             the receiving process is started.
         */
         digitalWrite(HANDSHAKE_SIGNAL_PIN, LOW);
