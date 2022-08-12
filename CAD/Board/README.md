@@ -12,5 +12,4 @@ Board:
 
 Final assembly:
 
-:---------------:|:---------------:
-![](board_r1.png)|![](board_r2.png)
+![](board_r1.JPEG)|![](board_r2.JPEG)
