@@ -6,10 +6,16 @@ Schematic:
 
 ![RS232 Websocket-Adapter board schematic](schematic.png)
 
+---
+
 Board:
 
 ![RS232 Websocket-Adapter board](board.png)
 
+---
+
 Final assembly:
 
-![](board_r1.JPEG)|![](board_r2.JPEG)
+![](board_r1.JPEG) 
+
+![](board_r2.JPEG)
