@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-// Import required libraries
+// required header
 #include <FS.h>
 #include <LittleFS.h>
 #include <ESP8266WiFi.h>
