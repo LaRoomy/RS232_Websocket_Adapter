@@ -39,3 +39,6 @@ link to website
 
 - configuration
 - data transmission
+
+
+- notes to compatibility of browsers (edge problem / safari problem)
