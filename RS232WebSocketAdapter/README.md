@@ -37,6 +37,39 @@ When first uploading the firmware to the device, the initial-mode define should 
 - When finished, select *Upload*
 - If this was the first build, disable the initial-mode define value and click *Upload* again
 
+#### Sequence of the program
+- On startup the device checks the configuration switch
+- If it is set, the device enteres the configuration mode and the network credentials can be configured via serial interface
+- Otherwise the device tries to connect to saved ssid/password combination
+- If the connection succeeded, the device enteres data transmission mode and the interface can be accessed via *ncinterface.local* inside of the local network
+- If the connection fails, the device enters the configuration mode
+
+
+explain files???
+
+explain the main.cpp: !
+
+```C++
+#include "root.h"
+
+// create root instance
+RootComponent rootC;
+
+// valid access to root instance from all locations
+RootComponent* getRootClass(){
+  return &rootC;
+}
+
+void setup(){
+  // initialize component
+  rootC.init();
+}
+
+void loop(){
+  // run
+  rootC.onLoop();
+}
+```
 
 
 Notes:
