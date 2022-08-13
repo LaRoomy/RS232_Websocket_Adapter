@@ -6,11 +6,9 @@ This is the firmware for the WebSocket-Adapter.
 - Framework: Arduino
 - IDE: [Microsoft Visual Studio Code](https://platformio.org/platformio-ide)
 
-The MCU data consists of two elements: the firmware and the filesystem image. The filesystem image is used to store the files for the WebServer (html, css, js).
-
 ---
 
-#### How to build
+### How to build
 - Download [Visual Studio Code](https://platformio.org/platformio-ide)
 - Install the PlatformIO IDE Extension
 - Extensions for code management are also necessary. We need support for C/C++ and html/css/javascript
@@ -37,17 +35,27 @@ When first uploading the firmware to the device, the initial-mode define should 
 - When finished, select *Upload*
 - If this was the first build, disable the initial-mode define value and click *Upload* again
 
-#### Sequence of the program
+### Sequence of the program
 - On startup the device checks the configuration switch
 - If it is set, the device enteres the configuration mode and the network credentials can be configured via serial interface
 - Otherwise the device tries to connect to saved ssid/password combination
 - If the connection succeeded, the device enteres data transmission mode and the interface can be accessed via *ncinterface.local* inside of the local network
 - If the connection fails, the device enters the configuration mode
 
+### Source Files
+The MCU data consists of two elements: the firmware and the filesystem-image.
 
-explain files???
+The filesystem image is used to store the files for the WebServer (html, css, js):
+- **webSocket_nc_Transmission.html**  (front-end code for the transmission page of the interface)
+- **webSocket_nc_Configuration.html**  (front-end code for the configuration page of the interface)
+- **exStyles.css**  (provides the styles for the html pages)
+- **exec_script.js**  (implements the back-end websocket functionality, and page behavior)
 
-explain the main.cpp: !
+The C++ source files are used to generate the binary for the MCU:
+- **root.h / root.cpp**  (implements the main functionality)
+- **serial.h / serial.cpp**  (implements the serial interface communication)
+- **stringtable.h**  (provides the strings for the user-interface)
+- **main.cpp**  (entry-point of the WebSocket-Adapter firmware):
 
 ```C++
 #include "root.h"
@@ -70,11 +78,11 @@ void loop(){
   rootC.onLoop();
 }
 ```
+As you can see, the whole functionality is coverd by the instance of the RootComponent object.
 
+---
 
-Notes:
+### Note:
+With the pinheaders on the board it is possible to set each hardware handshake pin to a specific level (HIGH/LOW). Place a jumper bridge either to the GND pinheader or to the OUT pinheader. The OUT pinheader can be controlled from the firmware to customize the levels of the pin on a specific operation.
 
-- first initialization
-- evaluation mode - use serial interface
-- no jumper!
-- special - setting the OUT pinheader level
+**But when programming or configuring the device, all jumper must be removed to ensure a reliable operation.**
