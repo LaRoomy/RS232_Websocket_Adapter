@@ -25,7 +25,7 @@ The front-end is accessible via browser from every device in the local network o
 The adapter logs in to the local network and advertises its local domain *ncinterface.local* via MDNS. It acts as an webserver. By entering the url *ncinterface.local* the interface website is loaded and remains connected by a websocket. The interface consists of the transmission page and the config page. The RS232 connection parameter can be set using the config page.
 
 
-### How to config the network
+### How to configure the network
 
 To set the network credentials the serial connection of the adapter must be used. Connect the adapter to a pc via USB to Serial adapter. Make sure all jumper of the handshake-pinheader bars are removed. Otherwise it will not work properly. The config switch of the adapter must be set to the appropriate position. Now connect the power-source and the device will start in config mode. To configure the network every serial terminal program can be used. I recommend to use my free app [*EPL Exchange*](https://epl-exchange.blogspot.com/). The parameters of the config interface are:
 - Baudrate: 9600
@@ -36,53 +36,34 @@ To set the network credentials the serial connection of the adapter must be used
 
 To set up the SSID (network name): type in "ssid", to set up the password for the network: type in "password" and follow the prompt respectively. Typing in "?" shows instructions to use. To check if the connection works, put to config switch in the off position and press reset. While trying to connect the red led blicks. If the device is connected to the network the blue led is on.
 
-### How get it ready to use
+### How to get it ready to use
 
-In most modern scenarios the handshake is ignored, known as RS232 3-wire interface, but machines running EPL2 needs specific levels on specific hardware handshake pins on transmission and some pins must be set to GND.
+In many modern scenarios the handshake is ignored, known as RS232 3-wire interface, but machines running EPL2 needs specific levels on specific hardware handshake pins during transmission and some other pins must be set to GND. The following configuration worked for all machines I have to do with:
 
+| Pin Name | Configuration |
+| -------- | ------------- |
+| RI       | GND           |
+| CTS      | GND           |
+| RTS      | OUT           |
+| DSR      | Not connected |
+| DTR      | OUT           |
+| CD       | GND           |
 
+When the jumper bridges on the pinheaders are connected. Make sure the config-switch is in *normal execution* position and the boot-switch is in *program mode* position. Set the Rx/Tx switch in the appropriate position and connect the adapter with the machine. Plug the power source in. If all is correct configured, the adapter shows the blue led indicating the successful connection with the network.
 
+TODO: picture of adapter plugged in!
 
+Now every device in the local network is able to access the adapters interface by opening the url **ncinterface.local**
 
-
-
-
-link to Firmware Project
-
-link to Circuit board resources
-
-link to CAD case resources
-
-link to website
-
-
-1. Description
-- platform independent interface
-- Access from every device in the private network (subnet)
-- platform IO
-- ESP8266
-- max3232 (rs232 to uart level converter)
-
-<screenshot of the html page>
-
-2. Theory of operation
-
-3. How to assemble/build the whole thing
-
-- esp8266
-- max3232 level shifter
-- pin header rows to adapt the level of each hardware handshake pin
-- parts, switches leds, explanation of funtional parts
-- config switch, boot switch
-- rx-tx cross switch
-- reset switch
-
-3. How to use the adapter
-
-<foto of the adapter plugged in>
-
-- configuration
-- data transmission
+#### Note:
+- There are some problems with browsers. I recommend firefox, this works on all platforms. The known problems are:
+   - Microsoft Edge does not support opening *.local* urls. Instead a internet search is being performed. The solution here is to add the url as a bookmark. Clicking this bookmark opens the interface.
+   - On iOS, Safari has problems with the websocket because the app using this interface must have permission granted to use the local network. Safari does not  seem to have this capability at all, so it won't work. Other browsers on iOS, like firefox, are working. By opening the interface a dialog to request the permission to use the local network is displayed. This must be positive confirmed.
 
 
-- notes to compatibility of browsers (edge problem / safari problem)
+### Resources
+- Printed Circuit Board resources can be found [here](CAD/Board)
+- CAD files for the case are located [here](CAD/Case)
+- The source-code for controller is [here](RS232WebSocketAdapter)
+- A website with further information on the [EPL2 data-transmission](https://epl2-datatransmission.blogspot.com/2020/08/epl2-datenubertragung.html)
+- Infos about the application [EPL-Exchange](https://epl-exchange.blogspot.com/) which could be used to configure the adapter
