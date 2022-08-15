@@ -15,7 +15,7 @@ This is the firmware for the WebSocket-Adapter.
 - Clone this Repository to your local machine
 - Open the sub-folder *RS232WebSocketAdapter* of the Repository in VSCode. Or use the PlatformIO Extension and select *Open Project*. Anyway the opened folder must contain the *platformio.ini* file
 - Click on the PlatformIO icon on the left pane to open the project tasks.
-- Make sure to enter the boot mode of the device by switching the boot switch in the right position and then press reset to enter boot mode
+- Make sure to enter the boot mode of the device by switching the boot switch in the *boot mode* position and then press reset to enter boot mode
 - Select *Build Filesystem Image* and when finished select *Upload Filesystem Image*
 - Open the *root.h* file in the editor.
 
@@ -33,7 +33,7 @@ When first uploading the firmware to the device, the initial-mode define should 
 
 - Select *Build* in the project tasks list on the left
 - When finished, select *Upload*
-- If this was the first build, disable the initial-mode define value and click *Upload* again
+- If this was the first build, put the boot switch in *program mode* position and press reset. When the program was executed once on the device, put the device back in boot mode. Disable the initial-mode define value and click *Build* and *Upload* again.
 
 ### Sequence of the program
 - On startup the device checks the configuration switch
