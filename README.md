@@ -18,6 +18,8 @@ The front-end is accessible via browser from every device in the local network o
 - The board contains a switch to select the RX/TX mode. The two lines can be crossed by this switch or used in line.
 - The board also has pinheader bars. The level of these bars can be set directly out of the program and indiviually set for each of the hardware-handshake pins of the RS232 interface. This ensures the possibility to make the interface conform to every handshake needs of the machine.
 
+![board specifications](CAD/Board/board_inst.png)
+
 ### How it works
 
 The adapter logs in to the local network and advertises its local domain *ncinterface.local* via MDNS. It acts as an webserver. By entering the url *ncinterface.local* the interface website is loaded and remains connected by a websocket. The interface consists of the transmission page and the config page. The RS232 connection parameter can be set using the config page.
@@ -32,7 +34,13 @@ To set the network credentials the serial connection of the adapter must be used
 - Stopbits: 1
 - Handshake: None
 
-To set up the SSID (network name): type in "ssid", to set up the password for the network: type in "password" and follow the prompt respectively. Typing in "?" shows instructions to use.
+To set up the SSID (network name): type in "ssid", to set up the password for the network: type in "password" and follow the prompt respectively. Typing in "?" shows instructions to use. To check if the connection works, put to config switch in the off position and press reset. While trying to connect the red led blicks. If the device is connected to the network the blue led is on.
+
+### How get it ready to use
+
+In most modern scenarios the handshake is ignored, known as RS232 3-wire interface, but machines running EPL2 needs specific levels on specific hardware handshake pins on transmission and some pins must be set to GND.
+
+
 
 
 
