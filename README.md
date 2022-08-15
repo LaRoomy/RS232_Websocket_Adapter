@@ -14,6 +14,26 @@ The front-end is accessible via browser from every device in the local network o
 
 ![front-end view](IMG/html_interface.png)
 
+### Special capabilities of the adapter
+- The board contains a switch to select the RX/TX mode. The two lines can be crossed by this switch or used in line.
+- The board also has pinheader bars. The level of these bars can be set directly out of the program and indiviually set for each of the hardware-handshake pins of the RS232 interface. This ensures the possibility to make the interface conform to every handshake needs of the machine.
+
+### How it works
+
+The adapter logs in to the local network and advertises its local domain *ncinterface.local* via MDNS. It acts as an webserver. By entering the url *ncinterface.local* the interface website is loaded and remains connected by a websocket. The interface consists of the transmission page and the config page. The RS232 connection parameter can be set using the config page.
+
+
+### How to config the network
+
+To set the network credentials the serial connection of the adapter must be used. Connect the adapter to a pc via USB to Serial adapter. Make sure all jumper of the handshake-pinheader bars are removed. Otherwise it will not work properly. The config switch of the adapter must be set to the appropriate position. Now connect the power-source and the device will start in config mode. To configure the network every serial terminal program can be used. I recommend to use my free app [*EPL Exchange*](https://epl-exchange.blogspot.com/). The parameters of the config interface are:
+- Baudrate: 9600
+- Parity: None
+- Databits: 8
+- Stopbits: 1
+- Handshake: None
+
+To set up the SSID (network name): type in "ssid", to set up the password for the network: type in "password" and follow the prompt respectively. Typing in "?" shows instructions to use.
+
 
 
 
