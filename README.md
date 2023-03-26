@@ -2,10 +2,10 @@
 ![](https://img.shields.io/github/license/LaRoomy/RS232_Websocket_Adapter)
 ![](https://img.shields.io/badge/Controller-ESP8266-9cf)
 
-This Project could be considered as the next-level development after my accomplishments with the apps for the serial data transmission to/from older EPL2 based machines. There were a few points which bothered me on my recent solutions: First thing is that the computer has to come to the machine, means there hast to be a (short) cable connection. What if I want to send data from the office? Second thing is the limitation to the windows platform. What if I want to use a mac or an android/ios-tablet or something. So this project does accomplish the following:
+This Project could be considered as the next-level development after my accomplishments with the apps for the serial data transmission to/from older EPL2 based machines. There were a few points which bothered me on my recent solutions: First thing is that the computer has to come to the machine, means there hast to be a (short) cable connection. What if I want to send data from the office? Second thing is the limitation to the windows platform. What if I want to use a mac or an android/ios-tablet or something. So this project accomplishes the following:
 - Enable data exchange over RS232 interface (especially for EPL2 based machines)
 - Exchange this data over a wireless connection in the local network
-- Provides a platform independent front-end which can be access via browser
+- Provides a platform independent front-end which can be accessed via browser
 
 This repository provides all necessary data to build the WebSocket-Adapter.
 - CAD data to create the [printed circuit board](CAD/Board)
