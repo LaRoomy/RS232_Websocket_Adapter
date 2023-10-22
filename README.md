@@ -55,8 +55,6 @@ In many modern scenarios the handshake is ignored, known as RS232 3-wire interfa
 
 When the jumper bridges on the pinheaders are connected. Make sure the config-switch is in *normal execution* position and the boot-switch is in *program mode* position. Set the Rx/Tx switch in the appropriate position and connect the adapter with the machine. Plug the power source in. If all is correct configured, the adapter shows the blue led indicating the successful connection with the network.
 
-TODO: picture of adapter plugged in!
-
 Now every device in the local network is able to access the adapters interface by opening the url **ncinterface.local**
 
 #### Note:
